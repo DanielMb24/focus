@@ -40,7 +40,7 @@ export function Onboarding() {
           <Button className="mt-4 w-full" disabled={!firstName.trim()} onClick={() => setStep(2)}>Continuer</Button></>)}
         {step === 2 && (<><h1 className="text-xl font-bold">Quel est votre profil ?</h1>
           <div className="mt-3 space-y-2">{profiles.map((p) => (
-            <button key={p.id} onClick={() => setProfileType(p.id)} className={cn("w-full rounded-xl border p-3 text-left transition", profileType === p.id ? "border-blue-700 bg-blue-50" : "border-stone-200 hover:border-stone-400")}>
+            <button key={p.id} onClick={() => setProfileType(p.id)} className={cn("w-full rounded-xl border p-3 text-left transition", profileType === p.id ? "border-blue-700 bg-blue-50 dark:border-blue-500 dark:bg-blue-950" : "border-stone-200 hover:border-stone-400 dark:border-zinc-700 dark:hover:border-zinc-500")}>
               <span className="text-sm font-semibold">{p.title}</span><span className="block text-xs text-zinc-500">{p.desc}</span>
             </button>))}
           </div>

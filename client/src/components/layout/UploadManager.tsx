@@ -47,7 +47,7 @@ export function UploadManager() {
               {u.status === "uploading" && (
                 <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-stone-200"><div className="h-1.5 rounded-full bg-blue-700 transition-all" style={{ width: `${u.progress}%` }} /></div>
               )}
-              <p className={cn("mt-1 text-[11px]", u.status === "failed" ? "font-medium text-red-700" : "text-stone-500")}>
+              <p className={cn("mt-1 text-[11px]", u.status === "failed" ? "font-medium text-red-700 dark:text-red-400" : "text-stone-500 dark:text-zinc-400")}>
                 {u.status === "uploading" && `${u.progress}%`}
                 {u.status === "pending" && <span className="flex items-center gap-1"><WifiOff size={11} /> En attente — reprendra à la reconnexion</span>}
                 {u.status === "completed" && "Terminé ✓"}

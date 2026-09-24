@@ -70,8 +70,8 @@ export function Notes() {
           <div className="flex items-center justify-between gap-2">
             <p className="min-w-0 flex-1 truncate font-bold">{n.title}</p>
             <div className="flex shrink-0 gap-1">
-              <button aria-label="Modifier la note" onClick={() => { setEditingId(n._id); setDraft(n.content ?? ""); }} className="rounded-md px-2 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800">Modifier</button>
-              <button aria-label="Supprimer note" onClick={() => del.mutate(n._id)} className="rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-red-50 hover:text-red-700">✕</button>
+              <button aria-label="Modifier la note" onClick={() => { setEditingId(n._id); setDraft(n.content ?? ""); }} className="rounded-md px-2 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">Modifier</button>
+              <button aria-label="Supprimer note" onClick={() => del.mutate(n._id)} className="rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-red-50 hover:text-red-700 dark:text-zinc-500 dark:hover:text-red-400">✕</button>
             </div>
           </div>
           {editingId === n._id ? (
@@ -132,7 +132,7 @@ export function Focus() {
         <label className="block text-left text-sm font-medium">Tâche (optionnel)
           <select value={taskId} onChange={(e) => setTaskId(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2"><option value="">—</option>{tasks.filter((t) => t.status !== "completed").slice(0, 30).map((t) => <option key={t._id} value={t._id}>{t.title}</option>)}</select>
         </label>
-        <div className="mt-3 flex justify-center gap-2">{presets.map((p) => <button key={p.l} onClick={() => setPlanned(p.s)} className={planned === p.s ? "rounded-full bg-blue-600 px-3 py-1 text-sm text-white" : "rounded-full bg-zinc-100 px-3 py-1 text-sm"}>{p.l}</button>)}
+        <div className="mt-3 flex justify-center gap-2">{presets.map((p) => <button key={p.l} onClick={() => setPlanned(p.s)} className={planned === p.s ? "rounded-full bg-blue-600 px-3 py-1 text-sm text-white" : "rounded-full bg-stone-200/60 px-3 py-1 text-sm text-stone-600 hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300"}>{p.l}</button>)}
           <label className="flex items-center gap-1 text-sm">Perso <input aria-label="Durée personnalisée (minutes)" value={custom} onChange={(e) => { setCustom(e.target.value); const n = Number(e.target.value); if (n > 0) setPlanned(Math.min(480, n) * 60); }} type="number" min={1} max={480} className="w-16 rounded border px-2 py-1" /> min</label>
         </div>
         <p className="mx-auto mt-5 flex h-44 w-44 items-center justify-center rounded-full border-4 border-blue-700 bg-white text-4xl font-black tabular-nums tracking-tight shadow-subtle dark:border-blue-500 dark:bg-zinc-900">{mm}</p>

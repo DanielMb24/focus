@@ -171,7 +171,7 @@ export function Files() {
           <div className="mb-3 flex gap-2 overflow-x-auto lg:hidden" role="tablist" aria-label="Vues fichiers">
             {([["files", "Fichiers"], ["recent", "Récents"], ["favorites", "Favoris"], ["trash", "Corbeille"]] as [View, string][]).map(([v, label]) => (
               <button key={v} role="tab" aria-selected={view === v} onClick={() => { setView(v); if (v === "files") setFolderId(null); }}
-                className={view === v ? "shrink-0 rounded-full bg-stone-900 px-3.5 py-1.5 text-sm font-medium text-white" : "shrink-0 rounded-full bg-stone-200/60 px-3.5 py-1.5 text-sm text-stone-600"}>
+                className={view === v ? "shrink-0 rounded-full bg-stone-900 px-3.5 py-1.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900" : "shrink-0 rounded-full bg-stone-200/60 px-3.5 py-1.5 text-sm text-stone-600 dark:bg-zinc-800 dark:text-zinc-300"}>
                 {label}
               </button>
             ))}

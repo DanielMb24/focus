@@ -1,5 +1,5 @@
 // Version embarquée : à bumper à chaque release (avec package.json + tauri.conf.json).
-export const APP_VERSION = "0.1.1";
+export const APP_VERSION = "0.1.2";
 
 export function normalizeTag(tag: string): string {
   return tag.trim().replace(/^v/i, "");

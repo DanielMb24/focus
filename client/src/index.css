@@ -23,6 +23,16 @@ input, select, textarea { min-width: 0; }
 img, video, iframe, pre, table { max-width: 100%; }
 main { overflow-wrap: break-word; }
 .grid > * { min-width: 0; }
+
+/* Filet dark-mode : aucun champ ne reste blanc avec texte clair. */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: #27272a;
+  border-color: #3f3f46;
+  color: #f4f4f5;
+  color-scheme: dark;
+}
 body {
   font-family: Roboto, system-ui, -apple-system, sans-serif;
   background: var(--bg);

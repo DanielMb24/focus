@@ -101,7 +101,7 @@ export function Sidebar() {
 
 export function MobileNav() {
   const item = "flex flex-col items-center gap-1 text-[11px] font-medium text-stone-500 transition active:scale-90";
-  const active = ({ isActive }: { isActive: boolean }) => cn(item, isActive && "text-stone-900 dark:text-zinc-100");
+  const active = ({ isActive }: { isActive: boolean }) => cn(item, isActive ? "text-stone-900 dark:text-zinc-100" : "dark:text-zinc-400");
   return (
     <nav aria-label="Navigation mobile" className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 pt-2 backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
       <div className="grid grid-cols-5 items-center px-2">

@@ -67,7 +67,7 @@ export function Settings() {
       {msg && <p role="status" className="mb-3 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-800">{msg}</p>}
       <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         <Card><h2 className="font-black tracking-tight">Profil</h2>
-          <p className="mt-1 text-sm text-stone-500">{me?.email} · {me?.profileType}</p>
+          <p className="mt-1 truncate text-sm text-stone-500">{me?.email} · {me?.profileType}</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <label className="text-sm font-medium">Prénom<input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-600" /></label>
             <label className="text-sm font-medium">Nom<input value={lastName} onChange={(e) => setLastName(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-600" /></label>
@@ -77,7 +77,7 @@ export function Settings() {
         <Card><h2 className="font-black tracking-tight">Apparence</h2>
           <div className="mt-3 flex gap-2">
             {(["light", "dark"] as const).map((t) => (
-              <button key={t} onClick={() => changeTheme(t)} className={theme === t ? "rounded-full bg-stone-900 px-4 py-1.5 text-sm font-medium text-white" : "rounded-full bg-stone-200/60 px-4 py-1.5 text-sm text-stone-600 hover:bg-stone-200"}>
+              <button key={t} onClick={() => changeTheme(t)} className={theme === t ? "rounded-full bg-stone-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900" : "rounded-full bg-stone-200/60 px-4 py-1.5 text-sm text-stone-600 hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"}>
                 {t === "light" ? "Clair" : "Sombre"}
               </button>
             ))}
@@ -87,7 +87,7 @@ export function Settings() {
         <Card><h2 className="font-black tracking-tight">Espaces</h2>
           <div className="mt-2 space-y-1">{workspaces.map((w) => (
             <div key={w._id} className="flex items-center gap-2">
-              <button onClick={() => setActive(w._id)} className={activeWorkspaceId === w._id ? "flex-1 rounded-lg bg-stone-100 px-2 py-1.5 text-left text-sm font-bold" : "flex-1 rounded-lg px-2 py-1.5 text-left text-sm text-stone-600 hover:bg-stone-50"}>{w.name} ({w.type})</button>
+              <button onClick={() => setActive(w._id)} className={activeWorkspaceId === w._id ? "flex-1 rounded-lg bg-stone-100 px-2 py-1.5 text-left text-sm font-bold dark:bg-zinc-800 dark:text-zinc-100" : "flex-1 rounded-lg px-2 py-1.5 text-left text-sm text-stone-600 hover:bg-stone-50 dark:text-zinc-300 dark:hover:bg-zinc-800/60"}>{w.name} ({w.type})</button>
               <button aria-label={`Supprimer ${w.name}`} onClick={() => deleteWorkspace(w._id, w.name)} className="rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-red-50 hover:text-red-700">✕</button>
             </div>))}
           </div>

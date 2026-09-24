@@ -88,7 +88,7 @@ export function Dashboard() {
                   key={s.title}
                   disabled={!activeWorkspaceId || createTask.isPending}
                   onClick={() => activeWorkspaceId && createTask.mutate({ workspaceId: activeWorkspaceId, title: s.title, priority: s.priority })}
-                  className="btn-press rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium transition hover:border-blue-700 hover:text-blue-800 disabled:opacity-50"
+                  className="btn-press rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium transition hover:border-blue-700 hover:text-blue-800 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:border-blue-500 dark:hover:text-blue-300"
                 >
                   + {s.title}
                 </button>
