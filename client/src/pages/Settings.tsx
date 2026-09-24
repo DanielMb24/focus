@@ -5,7 +5,7 @@ import { useMe, useWorkspaces, useCreateWorkspace } from "../lib/hooks";
 import { useWorkspace, useUI } from "../store/ui";
 import { api, setAccessToken } from "../lib/api";
 import { Topbar } from "../components/layout/Shell";
-import { InstallButton } from "../components/layout/InstallPrompt";
+import { NativeDownloads } from "../components/layout/NativeDownloads";
 import { Card, Button } from "../components/ui/primitives";
 
 export function applyTheme(theme: string) {
@@ -95,7 +95,7 @@ export function Settings() {
             <Button onClick={async () => { if (!name.trim()) return; const d = await create.mutateAsync({ name: name.trim(), type: "personal" }) as unknown as { workspace: { _id: string } }; setActive(d.workspace._id); setName(""); refetch(); }}>Créer</Button></div>
         </Card>
         <Card><h2 className="font-black tracking-tight">Session</h2><Button variant="danger" className="mt-2" onClick={logout}>Se déconnecter</Button></Card>
-        <Card><h2 className="font-black tracking-tight">PWA</h2><p className="mt-1 text-sm text-stone-500">Accès direct, plein écran, hors-ligne partiel.</p><InstallButton /></Card>
+        <Card><h2 className="font-black tracking-tight">Application mobile & bureau</h2><NativeDownloads /></Card>
       </div>
     </div>
   );

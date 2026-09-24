@@ -28,11 +28,15 @@ Préparé dans `client/src-tauri/` : `tauri.conf.json`, `Cargo.toml`, `main.rs`,
 Sur **votre PC Windows** :
 ```bash
 # 1. Installer Rust (rustup) + "Desktop development with C++" (Visual Studio Build Tools)
+#    ⚠️ SANS le workload C++ (link.exe), la compilation est impossible —
+#    vérifié le 24/09/2026 : absent, à installer via VS Installer.
 # 2. Dans client/ :
 npm run build
 npx tauri build
 # → client/src-tauri/target/release/Focus_0.1.0_x64-setup.exe (.msi aussi)
 ```
+- Le bouton « Télécharger pour Windows » (Paramètres → Application mobile
+  & bureau) apparaît dès que `VITE_EXE_URL` est renseignée.
 - `npm run tauri` = raccourci CLI ; `npm run tauri dev` pour le mode dev.
 - **Signature / SmartScreen** : sans certificat de signature de code,
   Windows affiche un avertissement SmartScreen à l'installation.
@@ -50,13 +54,21 @@ Préparé dans `client/` : `capacitor.config.ts` (`com.focus.productivity`,
 ```bash
 # Dans client/, après chaque changement web :
 npm run build && npm run cap:sync
-# Puis dans Android Studio : ouvrir client/android → Build > Build APK(s)
+# Puis compilation APK (JDK 21 requis, ex. Temurin portable) :
+cd android
+$env:JAVA_HOME = "<chemin JDK 21>"
+./gradlew assembleDebug
 # → android/app/build/outputs/apk/debug/app-debug.apk
 ```
+- ✅ **APK déjà compilé le 24/09/2026** : `client/android/app/build/outputs/apk/debug/app-debug.apk` (4,4 Mo, debug, clé auto).
+  Installation : copiez-le sur le téléphone (USB/Drive/Bluetooth) → ouvrez-le → autorisez « sources inconnues ».
 - **Release signée** : `Build > Generate Signed Bundle/APK` avec votre
   keystore (`keytool -genkeypair ...`). Sans signature, seul le mode
   debug / « sources inconnues » fonctionne.
 - **Play Store** : préférez l'`.aab` release + compte développeur (25 $).
+- **Bouton dans l'app** : Paramètres → « Application mobile & bureau »
+  affiche « Télécharger l'APK » dès que `VITE_APK_URL` est renseignée
+  (ex. URL d'une GitHub Release).
 - Icônes Android : générées (`mipmap-*`) depuis `pwa-512x512.png`.
   Pour les régénérer après un nouveau logo : adaptative icons via
   Android Studio (Resource Manager), ou `npx tauri icon` + copie manuelle.
