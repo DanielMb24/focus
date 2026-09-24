@@ -247,5 +247,6 @@ function EntityLinkLabel({ type, id }: { type: string; id: string }) {
   if (type === "note") label = notes.find((n) => n._id === id)?.title ?? label;
   if (type === "goal") label = goals.find((g) => g._id === id)?.title ?? label;
   const to = type === "project" ? `/projects/${id}` : type === "task" ? "/tasks" : type === "note" ? "/notes" : "/goals";
-  return <Link to={to} className="truncate text-sm font-medium text-blue-700 hover:underline">{label}</Link>;
+  return <Link to={to} className="truncate text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline">{label}</Link>;
 }
+

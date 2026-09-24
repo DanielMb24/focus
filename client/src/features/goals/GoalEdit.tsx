@@ -49,8 +49,8 @@ export function GoalEdit({ goal, onClose }: { goal: Goal; onClose: () => void })
   });
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Modifier l'objectif" className="animate-overlay fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 p-0 sm:items-center sm:p-4" onClick={onClose}>
-      <form onSubmit={handleSubmit((f) => save.mutate({ title: f.title, description: f.description || undefined, targetDate: f.targetDate || undefined, status: f.status }))} onClick={(e) => e.stopPropagation()} className="animate-sheet-up w-full max-w-lg rounded-t-2xl border border-stone-200 bg-white shadow-lift sm:rounded-2xl dark:border-zinc-700 dark:bg-zinc-900" style={{ marginBottom: "env(safe-area-inset-bottom)" }}>
+    <div role="dialog" aria-modal="true" aria-label="Modifier l'objectif" className="animate-overlay fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-4" onClick={onClose}>
+      <form onSubmit={handleSubmit((f) => save.mutate({ title: f.title, description: f.description || undefined, targetDate: f.targetDate || undefined, status: f.status }))} onClick={(e) => e.stopPropagation()} className="animate-sheet-up w-full max-w-lg rounded-2xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
         <div className="p-5 sm:p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-black tracking-tight">Modifier l'objectif</h2>
@@ -81,3 +81,4 @@ export function GoalEdit({ goal, onClose }: { goal: Goal; onClose: () => void })
     </div>
   );
 }
+

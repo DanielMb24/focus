@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, X, Share } from "lucide-react";
 import { isMobileDevice } from "../../lib/capabilities";
+import { useOutsideClose } from "../../lib/outside";
 
 const APK_URL = import.meta.env.VITE_APK_URL as string | undefined;
 
@@ -59,7 +60,10 @@ export function useInstallState() {
 export function InstallPrompt() {
   const { deferred, installed, dismissed, install, dismiss } = useInstallState();
   const [busy, setBusy] = useState(false);
-  if (installed || dismissed) return null;
+  const [hidden, setHidden] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useOutsideClose(!hidden && !dismissed && !installed, ref, () => setHidden(true));
+  if (installed || dismissed || hidden) return null;
 
   async function onInstall() {
     setBusy(true);
@@ -69,7 +73,7 @@ export function InstallPrompt() {
   }
 
   return (
-    <div role="dialog" aria-label="Installer l'application" className="animate-pop fixed bottom-24 left-1/2 z-40 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-stone-200 bg-white p-4 shadow-lift md:bottom-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <div ref={ref} role="dialog" aria-label="Installer l'application" className="animate-pop fixed bottom-24 left-1/2 z-40 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-stone-200 bg-white p-4 shadow-lift md:bottom-6 dark:border-zinc-700 dark:bg-zinc-900">
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-lg font-black text-white">F</span>
         <div className="min-w-0 flex-1">

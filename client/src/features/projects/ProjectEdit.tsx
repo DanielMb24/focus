@@ -68,8 +68,8 @@ export function ProjectEdit({ project, onClose }: { project: Project; onClose: (
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Modifier le projet" className="animate-overlay fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 p-0 sm:items-center sm:p-4" onClick={onClose}>
-      <form onSubmit={handleSubmit(onSubmit)} onClick={(e) => e.stopPropagation()} className="animate-sheet-up max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-stone-200 bg-white shadow-lift sm:rounded-2xl dark:border-zinc-700 dark:bg-zinc-900" style={{ marginBottom: "env(safe-area-inset-bottom)" }}>
+    <div role="dialog" aria-modal="true" aria-label="Modifier le projet" className="animate-overlay fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-4" onClick={onClose}>
+      <form onSubmit={handleSubmit(onSubmit)} onClick={(e) => e.stopPropagation()} className="animate-sheet-up max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
         <div className="p-5 sm:p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-black tracking-tight">Modifier le projet</h2>
@@ -82,7 +82,7 @@ export function ProjectEdit({ project, onClose }: { project: Project; onClose: (
             <p className="text-sm font-medium">Couleur</p>
             <div className="mt-1.5 flex gap-2">
               {colors.map((c) => (
-                <button key={c} type="button" aria-label={`Couleur ${c}`} onClick={() => setValue("color", c)} className={cn("h-8 w-8 rounded-full border-2 transition", color === c ? "border-stone-900 scale-110" : "border-transparent")} style={{ background: c }} />
+                <button key={c} type="button" aria-label={`Couleur ${c}`} onClick={() => setValue("color", c)} className={cn("h-8 w-8 rounded-full border-2 transition", color === c ? "scale-110 border-stone-900 dark:border-white" : "border-transparent")} style={{ background: c }} />
               ))}
             </div>
           </div>
@@ -108,3 +108,4 @@ export function ProjectEdit({ project, onClose }: { project: Project; onClose: (
     </div>
   );
 }
+

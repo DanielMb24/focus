@@ -84,7 +84,7 @@ export function Sidebar() {
                 const d = (await createWs.mutateAsync({ name: name.trim(), type: "personal" })) as unknown as { workspace: { _id: string } };
                 setActive(d.workspace._id);
               }}
-              className="mt-1.5 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+              className="mt-1.5 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-blue-700 dark:text-blue-400 transition hover:bg-blue-50"
             >
               <Plus size={15} /> Nouvel espace
             </button>
@@ -148,7 +148,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
             <div role="dialog" aria-label="Centre de notifications" className="animate-pop absolute right-0 top-12 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
               <div className="flex items-center justify-between border-b border-stone-200 px-4 py-2.5 dark:border-zinc-700">
                 <p className="text-sm font-black">Notifications</p>
-                <button onClick={() => { markAllRead(); }} className="text-xs font-medium text-blue-700 hover:underline">Tout marquer lu</button>
+                <button onClick={() => { markAllRead(); }} className="text-xs font-medium text-blue-700 dark:text-blue-400 hover:underline">Tout marquer lu</button>
               </div>
               <div className="max-h-80 overflow-y-auto p-2">
                 {items.length === 0 && <p className="px-2 py-6 text-center text-sm text-stone-500">Aucune notification pour le moment.</p>}
@@ -166,7 +166,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
               <div className="flex items-center justify-between border-t border-stone-200 px-4 py-2.5 dark:border-zinc-700">
                 {sysOn
                   ? <p className="text-xs text-stone-500">Notifications système activées.</p>
-                  : <button onClick={enableSystem} className="text-xs font-bold text-blue-700 hover:underline">Activer les notifications système</button>}
+                  : <button onClick={enableSystem} className="text-xs font-bold text-blue-700 dark:text-blue-400 hover:underline">Activer les notifications système</button>}
                 {items.length > 0 && <button onClick={clear} className="text-xs text-stone-400 hover:text-red-700">Tout effacer</button>}
               </div>
             </div>
@@ -220,7 +220,7 @@ function ProfileMenu() {
               <button key={w._id} onClick={() => { setActive(w._id); setOpen(false); }}
                 className={cn("flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition", activeWorkspaceId === w._id ? "bg-stone-100 font-bold dark:bg-zinc-800" : "hover:bg-stone-50 dark:hover:bg-zinc-800")}>
                 <span className="min-w-0 flex-1 truncate">{w.name}</span>
-                {activeWorkspaceId === w._id && <Check size={15} className="shrink-0 text-blue-700" />}
+                {activeWorkspaceId === w._id && <Check size={15} className="shrink-0 text-blue-700 dark:text-blue-400" />}
               </button>
             ))}
           </div>
@@ -237,3 +237,4 @@ function ProfileMenu() {
     </div>
   );
 }
+

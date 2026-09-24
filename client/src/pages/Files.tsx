@@ -297,8 +297,8 @@ export function Files() {
       </div>
 
       {showNewFolder && (
-        <div role="dialog" aria-modal="true" aria-label="Nouveau dossier" className="animate-overlay fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 sm:items-center sm:p-4" onClick={() => setShowNewFolder(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="animate-sheet-up w-full max-w-sm rounded-t-2xl bg-white p-5 sm:rounded-2xl dark:bg-zinc-900">
+        <div role="dialog" aria-modal="true" aria-label="Nouveau dossier" className="animate-overlay fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-4" onClick={() => setShowNewFolder(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="animate-sheet-up w-full max-w-sm rounded-2xl bg-white p-5 dark:bg-zinc-900">
             <h2 className="font-black tracking-tight">Nouveau dossier</h2>
             <input autoFocus value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && newFolderName.trim() && activeWorkspaceId) { void createFolder.mutateAsync({ workspaceId: activeWorkspaceId, name: newFolderName.trim(), parentId: folderId }).then(() => { setNewFolderName(""); setShowNewFolder(false); }); } }}
@@ -366,7 +366,7 @@ function FileRow({ file, layout, selectMode, selected, onToggle, onOpen, onActio
     <div className={cn("task-row group flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3 shadow-subtle dark:bg-zinc-900", selected ? "border-blue-700" : "border-stone-200 dark:border-zinc-800")}>
       {selectMode && <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Sélectionner ${file.name}`} className="h-4 w-4 shrink-0 accent-blue-700" />}
       <button onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-label={`Ouvrir ${file.name}`}>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:text-blue-400 dark:bg-blue-950 dark:text-blue-300">
           <Icon size={20} />
         </span>
         <span className="min-w-0">
@@ -482,3 +482,4 @@ function SheetBtn({ icon: Icon, label, onClick, danger }: { icon: typeof FileTex
     </button>
   );
 }
+

@@ -63,8 +63,8 @@ export function ScannerModal({ folderId, onClose }: { folderId: string | null; o
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Scanner un document" className="animate-overlay fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 sm:items-center sm:p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="animate-sheet-up max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-5 sm:rounded-2xl dark:bg-zinc-900" style={{ marginBottom: "env(safe-area-inset-bottom)" }}>
+    <div role="dialog" aria-modal="true" aria-label="Scanner un document" className="animate-overlay fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="animate-sheet-up max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-5 dark:bg-zinc-900">
         <div className="flex items-center justify-between">
           <h2 className="font-black tracking-tight">Scanner un document</h2>
           <button aria-label="Fermer" onClick={onClose} className="rounded-full p-2 text-stone-400 hover:bg-stone-100"><X size={18} /></button>
@@ -77,7 +77,7 @@ export function ScannerModal({ folderId, onClose }: { folderId: string | null; o
           <>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {pages.map((p, i) => (
-                <div key={p.id} className="relative overflow-hidden rounded-xl border border-stone-200">
+                <div key={p.id} className="relative overflow-hidden rounded-xl border border-stone-200 dark:border-zinc-700">
                   <img src={p.url} alt={`Page ${i + 1}`} className="aspect-[3/4] w-full object-cover" />
                   <span className="absolute left-1 top-1 rounded bg-stone-900/80 px-1.5 py-0.5 text-[11px] font-bold text-white">{i + 1}</span>
                   <div className="absolute bottom-1 right-1 flex gap-1">
@@ -104,3 +104,4 @@ export function ScannerModal({ folderId, onClose }: { folderId: string | null; o
     </div>
   );
 }
+

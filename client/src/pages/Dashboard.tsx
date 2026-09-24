@@ -116,7 +116,7 @@ export function Dashboard() {
           </section>
           {recentFiles.length > 0 && (
             <section aria-label="Fichiers récents">
-              <div className="mb-2 flex items-center justify-between"><h2 className="font-semibold">Fichiers récents</h2><Link to="/files" className="text-sm text-blue-700">Voir tout</Link></div>
+              <div className="mb-2 flex items-center justify-between"><h2 className="font-semibold">Fichiers récents</h2><Link to="/files" className="text-sm text-blue-700 dark:text-blue-400">Voir tout</Link></div>
               <div className="space-y-2">
                 {recentFiles.slice(0, 3).map((f) => (
                   <Link key={f._id} to={`/files/${f._id}`}>
@@ -132,5 +132,6 @@ export function Dashboard() {
     </div>
   );
 }
+
 
 

@@ -16,9 +16,10 @@ Les applis natives ne peuvent pas utiliser le proxy Vite (`/api` relatif).
    (ex. `CLIENT_URL=https://votre-app.example.com,capacitor://localhost`).
    En production le cookie refresh exige HTTPS (`Secure`, `SameSite=None`) —
    déjà géré par `secure: isProd`.
-   ⚠️ L'APK Capacitor appelle l'API depuis `https://localhost` : cette
-   origine (et `capacitor://localhost`) DOIT figurer dans `CLIENT_URL`
-   du backend, sinon `failed to fetch` (CORS).
+   ⚠️ L'APK Capacitor appelle l'API depuis `https://localhost`, l'exe Tauri
+   depuis `tauri://localhost` : ces deux origines (plus
+   `capacitor://localhost`) DOIVENT figurer dans `CLIENT_URL`
+   du backend, sinon `failed to fetch` / « Serveur injoignable ».
 4. Limite connue : le refresh token (cookie HttpOnly) ne survit pas toujours
    au redémarrage d'une webview native → l'utilisateur se reconnecte.
    L'access token en mémoire fonctionne normalement pendant la session.

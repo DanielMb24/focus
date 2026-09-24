@@ -19,7 +19,7 @@ export function Toasts() {
       role="status"
       className="animate-pop fixed bottom-20 left-1/2 z-[60] flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-start gap-2.5 rounded-xl border border-stone-200 bg-white px-4 py-3 text-left shadow-lift md:bottom-6 dark:border-zinc-700 dark:bg-zinc-900"
     >
-      <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-700" />
+      <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-700 dark:text-blue-400" />
       <span className="min-w-0">
         <span className="block truncate text-sm font-bold">{toast.title}</span>
         {toast.body && <span className="block truncate text-xs text-stone-500">{toast.body}</span>}
@@ -28,3 +28,4 @@ export function Toasts() {
     </button>
   );
 }
+
