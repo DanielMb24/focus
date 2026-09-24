@@ -3,7 +3,7 @@ import { ZodError } from "zod";
 import multer from "multer";
 import { env } from "../config/env.js";
 
-export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
   if (err instanceof multer.MulterError) {
     const message = err.code === "LIMIT_FILE_SIZE" ? `Fichier trop volumineux (max ${env.MAX_FILE_SIZE_MB} Mo)` : err.message;
     return res.status(400).json({ success: false, error: { code: "VALIDATION_ERROR", message } });
@@ -14,10 +14,11 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
       error: { code: "VALIDATION_ERROR", message: "Invalid input", details: err.flatten() },
     });
   }
-  const e = err as { status?: number; code?: string; message?: string; details?: unknown };
+  const e = err as { status?: number; code?: string; message?: string; details?: unknown; name?: string };
   const status = typeof e.status === "number" ? e.status : 500;
   const code = e.code ?? (status === 500 ? "INTERNAL" : "INTERNAL");
-  if (!env.isProd) console.error(err);
+  // Journalisé partout (message + route, jamais de secrets) : indispensable en serverless.
+  console.error(`[api] ${req.method} ${req.path} -> ${status} ${code}: ${e.name ?? "Error"}: ${e.message ?? "unknown"}`);
   res.status(status).json({
     success: false,
     error: {
