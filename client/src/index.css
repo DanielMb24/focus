@@ -24,6 +24,23 @@ img, video, iframe, pre, table { max-width: 100%; }
 main { overflow-wrap: break-word; }
 .grid > * { min-width: 0; }
 
+/* Fond animé des écrans d'authentification : halos doux en dérive lente. */
+.auth-bg { position: relative; overflow: hidden; }
+.auth-bg::before,
+.auth-bg::after {
+  content: ""; position: absolute; border-radius: 9999px;
+  filter: blur(90px); pointer-events: none;
+  animation: drift 14s ease-in-out infinite alternate;
+}
+.auth-bg::before { width: 440px; height: 440px; background: rgba(29, 78, 216, 0.13); top: -140px; left: -140px; }
+.auth-bg::after { width: 380px; height: 380px; background: rgba(29, 78, 216, 0.09); bottom: -160px; right: -120px; animation-delay: -7s; }
+.dark .auth-bg::before { background: rgba(29, 78, 216, 0.22); }
+.dark .auth-bg::after { background: rgba(29, 78, 216, 0.14); }
+@keyframes drift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(46px, 34px) scale(1.12); }
+}
+
 /* Filet dark-mode : aucun champ ne reste blanc avec texte clair. */
 .dark input:not([type="checkbox"]):not([type="radio"]),
 .dark select,

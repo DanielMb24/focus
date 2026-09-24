@@ -17,7 +17,7 @@ const inputCls = "mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3
 
 function AuthShell({ title, sub, children, footer }: { title: string; sub: string; children: React.ReactNode; footer: React.ReactNode }) {
   return (
-    <div className="anim-page mx-auto flex min-h-full w-full max-w-md flex-col justify-center px-4 py-10">
+    <div className="anim-page auth-bg relative mx-auto flex min-h-full w-full max-w-md flex-col justify-center overflow-hidden px-4 py-10 [&>*]:relative [&>*]:z-[1]">
       <div className="animate-fade-up flex items-center gap-2.5">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-700 text-base font-black text-white shadow-subtle">F</span>
         <span className="text-xl font-black tracking-tight">Focus</span>
