@@ -1,0 +1,7 @@
+{
+  "$schema": "./default.json",
+  "identifier": "default",
+  "description": "Permissions minimales : lecture du presse-papiers désactivée, shell désactivé.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.local
+.DS_Store
+server/uploads/
+server/uploads/tmp/
+client/src-tauri/target/
+client/android/app/build/
+client/android/.gradle/

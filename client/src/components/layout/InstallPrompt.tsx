@@ -1,0 +1,111 @@
+import { useEffect, useState } from "react";
+import { Download, X, Share } from "lucide-react";
+import { isMobileDevice } from "../../lib/capabilities";
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+function isInstalled(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
+
+function isIOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent) && !(navigator as Navigator & { standalone?: boolean }).standalone;
+}
+
+export function useInstallState() {
+  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installed, setInstalled] = useState(isInstalled);
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem("install-dismissed") === "1");
+
+  useEffect(() => {
+    function onPrompt(e: Event) {
+      e.preventDefault();
+      setDeferred(e as BeforeInstallPromptEvent);
+    }
+    function onInstalled() { setInstalled(true); }
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  async function install(): Promise<boolean> {
+    if (!deferred) return false;
+    await deferred.prompt();
+    const { outcome } = await deferred.userChoice;
+    if (outcome === "accepted") setInstalled(true);
+    setDeferred(null);
+    return outcome === "accepted";
+  }
+
+  function dismiss() {
+    localStorage.setItem("install-dismissed", "1");
+    setDismissed(true);
+  }
+
+  return { deferred, installed, dismissed, install, dismiss };
+}
+
+/** Bannière d'installation : bureau (Chrome/Edge) comme téléphone (Android + consigne iOS). */
+export function InstallPrompt() {
+  const { deferred, installed, dismissed, install, dismiss } = useInstallState();
+  const [busy, setBusy] = useState(false);
+  if (installed || dismissed) return null;
+
+  async function onInstall() {
+    setBusy(true);
+    const ok = await install();
+    if (!ok) dismiss();
+    setBusy(false);
+  }
+
+  return (
+    <div role="dialog" aria-label="Installer l'application" className="animate-pop fixed bottom-24 left-1/2 z-40 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-stone-200 bg-white p-4 shadow-lift md:bottom-6 dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-lg font-black text-white">F</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black">Installer Focus</p>
+          {deferred ? (
+            <p className="mt-0.5 text-xs text-stone-500">Accès direct depuis le bureau ou l'écran d'accueil, mode plein écran, hors-ligne.</p>
+          ) : isIOS() ? (
+            <p className="mt-0.5 text-xs text-stone-500">Sur iPhone : touchez <Share size={11} className="inline" /> Partager puis « Sur l'écran d'accueil ».</p>
+          ) : (
+            <p className="mt-0.5 text-xs text-stone-500">Menu du navigateur → « Installer l'application ».</p>
+          )}
+        </div>
+        <button aria-label="Fermer" onClick={dismiss} className="rounded p-1 text-stone-400 hover:bg-stone-100"><X size={15} /></button>
+      </div>
+      {deferred && (
+        <button onClick={() => void onInstall()} disabled={busy} className="btn-press mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
+          <Download size={15} /> {busy ? "…" : isMobileDevice() ? "Installer l'application" : "Télécharger"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Bouton réutilisable (ex. page Paramètres). */
+export function InstallButton() {
+  const { deferred, installed, install } = useInstallState();
+  const [busy, setBusy] = useState(false);
+  if (installed) return <p className="mt-1 text-sm font-medium text-emerald-700">Application installée ✓</p>;
+  if (!deferred) {
+    return <p className="mt-1 text-sm text-stone-500">{isIOS() ? "Sur iPhone : Partager → « Sur l'écran d'accueil »." : "Menu du navigateur → « Installer l'application »."}</p>;
+  }
+  return (
+    <button
+      onClick={() => { setBusy(true); void install().finally(() => setBusy(false)); }}
+      disabled={busy}
+      className="btn-press mt-2 flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800"
+    >
+      <Download size={15} /> {busy ? "…" : "Installer l'application"}
+    </button>
+  );
+}

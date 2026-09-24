@@ -1,0 +1,82 @@
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, useNavigate } from "react-router-dom";
+import { api, setAccessToken } from "../lib/api";
+import { Button } from "../components/ui/primitives";
+import { useState } from "react";
+
+const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1) });
+const registerSchema = z.object({
+  firstName: z.string().min(1), email: z.string().email(), password: z.string().min(8),
+  profileType: z.enum(["student", "professional", "entrepreneur"]),
+});
+
+const inputCls = "mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-stone-600";
+
+function AuthShell({ title, sub, children, footer }: { title: string; sub: string; children: React.ReactNode; footer: React.ReactNode }) {
+  return (
+    <div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center px-4 py-10">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-900 text-base font-black text-white">F</span>
+        <span className="text-xl font-black tracking-tight">Focus</span>
+      </div>
+      <h1 className="mt-6 text-2xl font-black tracking-tight">{title}</h1>
+      <p className="mt-1 text-sm text-stone-500">{sub}</p>
+      <div className="mt-5 rounded-xl border border-stone-200 bg-white p-6 shadow-subtle dark:border-zinc-800 dark:bg-zinc-900">
+        {children}
+      </div>
+      <div className="mt-4 text-center text-sm text-stone-500">{footer}</div>
+    </div>
+  );
+}
+
+export function Login() {
+  const nav = useNavigate();
+  const [err, setErr] = useState("");
+  const { register, handleSubmit } = useForm<z.infer<typeof loginSchema>>({ resolver: zodResolver(loginSchema) });
+  return (
+    <AuthShell title="Bon retour" sub="Que devez-vous accomplir aujourd'hui ?" footer={<>Pas de compte ? <Link to="/register" className="font-bold text-blue-600">Créer un compte</Link></>}>
+      <form onSubmit={handleSubmit(async (f) => {
+        try {
+          const d = await api<{ accessToken: string; user: { onboardingCompleted: boolean } }>("/api/v1/auth/login", { method: "POST", body: JSON.stringify(f) });
+          setAccessToken(d.accessToken); nav(d.user.onboardingCompleted ? "/" : "/onboarding");
+        } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); }
+      })} className="space-y-3.5">
+        <label className="block text-sm font-medium">Email<input {...register("email")} type="email" placeholder="vous@exemple.com" className={inputCls} /></label>
+        <label className="block text-sm font-medium">Mot de passe<input {...register("password")} type="password" placeholder="••••••••" className={inputCls} /></label>
+        {err && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{err}</p>}
+        <Button type="submit" className="w-full">Se connecter</Button>
+      </form>
+    </AuthShell>
+  );
+}
+
+export function Register() {
+  const nav = useNavigate();
+  const [err, setErr] = useState("");
+  const { register, handleSubmit } = useForm<z.infer<typeof registerSchema>>({ resolver: zodResolver(registerSchema), defaultValues: { profileType: "student" } });
+  return (
+    <AuthShell title="Bienvenue" sub="Créez votre espace de productivité" footer={<>Déjà inscrit ? <Link to="/login" className="font-bold text-blue-600">Se connecter</Link></>}>
+      <form onSubmit={handleSubmit(async (f) => {
+        try {
+          const d = await api<{ accessToken: string }>("/api/v1/auth/register", { method: "POST", body: JSON.stringify(f) });
+          setAccessToken(d.accessToken); nav("/onboarding");
+        } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); }
+      })} className="space-y-3.5">
+        <label className="block text-sm font-medium">Prénom<input {...register("firstName")} placeholder="Ex. Daniel" className={inputCls} /></label>
+        <label className="block text-sm font-medium">Email<input {...register("email")} type="email" placeholder="vous@exemple.com" className={inputCls} /></label>
+        <label className="block text-sm font-medium">Mot de passe (8+ caractères)<input {...register("password")} type="password" placeholder="••••••••" className={inputCls} /></label>
+        <label className="block text-sm font-medium">Profil
+          <select {...register("profileType")} className={inputCls}>
+            <option value="student">Étudiant</option><option value="professional">Professionnel</option><option value="entrepreneur">Entrepreneur</option>
+          </select>
+        </label>
+        {err && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{err}</p>}
+        <Button type="submit" className="w-full">Créer mon compte</Button>
+      </form>
+    </AuthShell>
+  );
+}
+
+
