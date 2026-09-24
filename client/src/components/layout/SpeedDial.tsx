@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, CheckSquare, FolderKanban, StickyNote, Timer, Target, X, HardDriveUpload } from "lucide-react";
+import {
+  Plus, X, FolderPlus, LayoutDashboard, CalendarDays, CheckSquare, FolderKanban,
+  Folder, Calendar, Target, StickyNote, Timer,
+} from "lucide-react";
 import { useUI, useWorkspace } from "../../store/ui";
 import { useCreateProject } from "../../lib/hooks";
 import { cn } from "../../lib/cn";
@@ -30,13 +33,19 @@ export function SpeedDial() {
     } catch (e) { setErr(e instanceof Error ? e.message : "Échec"); }
   }
 
+  const go = (to: string) => { close(); nav(to); };
   const actions = [
-    { label: "Tâche", icon: CheckSquare, bg: "bg-blue-700", run: () => { close(); setQuickAdd(true); } },
-    { label: "Projet", icon: FolderKanban, bg: "bg-violet-700", run: () => setProjectMode(true) },
-    { label: "Note", icon: StickyNote, bg: "bg-amber-600", run: () => { close(); nav("/notes"); } },
-    { label: "Fichier", icon: HardDriveUpload, bg: "bg-sky-700", run: () => { close(); nav("/files"); } },
-    { label: "Focus", icon: Timer, bg: "bg-emerald-700", run: () => { close(); nav("/focus"); } },
-    { label: "Objectif", icon: Target, bg: "bg-rose-700", run: () => { close(); nav("/goals"); } },
+    { label: "+ Tâche", icon: Plus, cls: "bg-blue-700 text-white", run: () => { close(); setQuickAdd(true); } },
+    { label: "+ Projet", icon: FolderPlus, cls: "bg-violet-700 text-white", run: () => setProjectMode(true) },
+    { label: "Accueil", icon: LayoutDashboard, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/") },
+    { label: "Jour", icon: CalendarDays, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/today") },
+    { label: "Tâches", icon: CheckSquare, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/tasks") },
+    { label: "Projets", icon: FolderKanban, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/projects") },
+    { label: "Fichiers", icon: Folder, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/files") },
+    { label: "Calendrier", icon: Calendar, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/calendar") },
+    { label: "Objectifs", icon: Target, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/goals") },
+    { label: "Notes", icon: StickyNote, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/notes") },
+    { label: "Focus", icon: Timer, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/focus") },
   ];
 
   return (
@@ -60,7 +69,7 @@ export function SpeedDial() {
                 aria-label={a.label}
                 tabIndex={open ? 0 : -1}
                 onClick={a.run}
-                className={cn("btn-press flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lift", a.bg)}
+                className={cn("btn-press flex h-12 w-12 items-center justify-center rounded-full shadow-lift", a.cls)}
               >
                 <a.icon size={20} />
               </button>

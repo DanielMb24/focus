@@ -1,5 +1,7 @@
 /** Base de l'API : même origine par défaut (web/PWA), URL absolue via VITE_API_URL (Tauri/Capacitor). */
 export const API_BASE = ((import.meta.env.VITE_API_URL as string | undefined) ?? "").replace(/\/$/, "");
+import { useUI } from "../store/ui";
+
 const BASE = API_BASE;
 
 let accessToken: string | null = localStorage.getItem("accessToken");
@@ -30,7 +32,15 @@ export class ApiError extends Error {
 export async function api<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
   const headers: Record<string, string> = { "Content-Type": "application/json", ...((init.headers as Record<string, string>) ?? {}) };
   if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
-  const res = await fetch(`${BASE}${path}`, { ...init, headers, credentials: "include" });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, { ...init, headers, credentials: "include" });
+  } catch {
+    // Réseau coupé, API éteinte ou CORS qui bloque : on lève le drapeau global.
+    useUI.getState().setApiDown(true);
+    throw new ApiError(0, "NETWORK", "Serveur injoignable");
+  }
+  if (useUI.getState().apiDown) useUI.getState().setApiDown(false);
   if (res.status === 401 && retry && !path.includes("/auth/")) {
     const t = await refreshAccess();
     if (t) return api<T>(path, init, false);

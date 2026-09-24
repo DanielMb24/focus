@@ -37,7 +37,7 @@ function RequireAuth() {
 }
 
 function AppShell() {
-  const { setOnline } = useUI();
+  const { setOnline, apiDown } = useUI();
   const { pathname } = useLocation();
   const { data: workspaces } = useWorkspaces();
   const { activeWorkspaceId, setActive } = useWorkspace();
@@ -57,6 +57,12 @@ function AppShell() {
     <div className="flex h-full">
       <Sidebar />
       <main className="mx-auto w-full max-w-6xl flex-1 overflow-y-auto px-4 pb-28 pt-4 sm:px-6 md:pb-10 md:pt-6">
+        {apiDown && (
+          <div role="alert" className="animate-pop mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+            <span>Serveur injoignable — vérifiez votre connexion, l'URL de l'API et la configuration CORS.</span>
+            <button onClick={() => window.location.reload()} className="ml-auto rounded-lg bg-red-700 px-3 py-1.5 text-xs font-bold text-white">Réessayer</button>
+          </div>
+        )}
         <Suspense fallback={<Skeleton className="h-40" />}>
           <div key={pathname} className="anim-page">
             <Outlet />
