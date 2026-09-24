@@ -18,7 +18,7 @@ export const env = {
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN ?? "30d",
   // Coût bcrypt : 10 = ~100 ms (serverless hobby), 12+ = hosts dédiés.
   BCRYPT_ROUNDS: Number(process.env.BCRYPT_ROUNDS ?? 10),
-  CLIENT_URL: process.env.CLIENT_URL ?? "http://localhost:5173",
+  CLIENT_URL: process.env.CLIENT_URL  ?? "https://mytsak.vercel.app",
   MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB ?? 25),
   MAX_WORKSPACE_STORAGE_MB: Number(process.env.MAX_WORKSPACE_STORAGE_MB ?? 1024),
   STORAGE_DIR: process.env.STORAGE_DIR ?? "./uploads",
