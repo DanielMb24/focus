@@ -16,7 +16,13 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 export function createApp() {
   const app = express();
   app.use(securityHeaders);
-  app.use(cors({ origin: env.CLIENT_URL.split(","), credentials: true }));
+  // Origines normalisées : espaces, slash final et caractères invisibles
+  // issus d'un copier-coller dashboard neutralisés.
+  const origins = env.CLIENT_URL.split(",")
+    .map((o) => o.replace(/[\s\u200B-\u200F\uFEFF]/g, "").replace(/\/$/, "").toLowerCase())
+    .filter(Boolean);
+  console.log(`CORS origins: ${origins.join(",") || "(none)"}`);
+  app.use(cors({ origin: origins, credentials: true }));
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
   if (!env.isProd) app.use(morgan("dev"));
