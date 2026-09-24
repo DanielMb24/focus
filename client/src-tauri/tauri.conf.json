@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Focus",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.focus.productivity",
   "build": {
     "frontendDist": "../dist",
@@ -24,7 +24,16 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
     "windows": { "nsis": { "displayLanguageSelector": false } }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": ["https://github.com/DanielMb24/focus/releases/latest/download/latest.json"],
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI3NjVBRjBFN0RENjQ2RUYKUldUdlJ0WjlEcTlsSnc2NWlWNnpEeXlwWVZCcFZwLzF1anRNb01ocnNFRnFheWltalI1S0txazQK"
+    }
   }
 }

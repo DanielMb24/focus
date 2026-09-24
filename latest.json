@@ -1,0 +1,11 @@
+{
+  "pub_date": "2026-09-24T17:02:31Z",
+  "version": "0.1.1",
+  "platforms": {
+    "windows-x86_64": {
+      "url": "https://github.com/DanielMb24/focus/releases/download/v0.1.1/Focus_0.1.1_x64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUdlJ0WjlEcTlsSjhaZjMwS0lGTlFVb1VMV25FMWRGUytTZDV1ZjhkbzFPWnhTYnhYVFJEUGs3eHRPalR3SWlsaTdFOS9kRjRNOGFHRitYNWZqd05OQTdZUWxveFJZUndBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwMjY5MzE4CWZpbGU6Rm9jdXNfMC4xLjFfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xCkZvWU9aSlhxOWh5N1R2bTdZR1lKSk9KbmNYamNkQTM5bXkyT0xGdW5ySlcya3Bjd3ZuaTd3MUZzSkdLaXhjRU1OTzg0ZVYvSzRSS204T0c4RUk0TERnPT0K"
+    }
+  },
+  "notes": "Mises à jour automatiques + vérificateur de version"
+}
