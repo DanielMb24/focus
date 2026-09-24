@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, type ComponentType } from "react";
 import { createBrowserRouter, RouterProvider, Navigate, Outlet, useLocation } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../lib/queryClient";
@@ -16,19 +16,38 @@ import { Skeleton } from "../components/ui/primitives";
 import { Login, Register } from "../pages/Auth";
 import { Onboarding } from "../pages/Onboarding";
 
-const Dashboard = lazy(() => import("../pages/Dashboard").then((m) => ({ default: m.Dashboard })));
-const Today = lazy(() => import("../pages/Today").then((m) => ({ default: m.Today })));
-const Tasks = lazy(() => import("../pages/Tasks").then((m) => ({ default: m.Tasks })));
-const Projects = lazy(() => import("../pages/Projects").then((m) => ({ default: m.Projects })));
-const ProjectDetail = lazy(() => import("../pages/ProjectDetail").then((m) => ({ default: m.ProjectDetail })));
-const Calendar = lazy(() => import("../pages/Calendar").then((m) => ({ default: m.Calendar })));
-const Files = lazy(() => import("../pages/Files").then((m) => ({ default: m.Files })));
-const FileDetail = lazy(() => import("../pages/FileDetail").then((m) => ({ default: m.FileDetail })));
-const ShareTarget = lazy(() => import("../pages/ShareTarget").then((m) => ({ default: m.ShareTarget })));
-const Goals = lazy(() => import("../pages/Secondary").then((m) => ({ default: m.Goals })));
-const Notes = lazy(() => import("../pages/Secondary").then((m) => ({ default: m.Notes })));
-const Focus = lazy(() => import("../pages/Secondary").then((m) => ({ default: m.Focus })));
-const Settings = lazy(() => import("../pages/Settings").then((m) => ({ default: m.Settings })));
+const STALE_CHUNK_KEY = "chunk-retry";
+
+/** En cas de chunk périmé (onglet ouvert pendant un redéploiement),
+ *  recharge une fois pour récupérer le HTML/assets frais. Anti-boucle via sessionStorage. */
+function lazyWithRetry<T extends ComponentType<unknown>>(factory: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      const mod = await factory();
+      sessionStorage.removeItem(STALE_CHUNK_KEY);
+      return mod;
+    } catch (e) {
+      if (!sessionStorage.getItem(STALE_CHUNK_KEY)) {
+        sessionStorage.setItem(STALE_CHUNK_KEY, "1");
+        window.location.reload();
+      }
+      throw e;
+    }
+  });
+}
+const Dashboard = lazyWithRetry(() => import("../pages/Dashboard").then((m) => ({ default: m.Dashboard })));
+const Today = lazyWithRetry(() => import("../pages/Today").then((m) => ({ default: m.Today })));
+const Tasks = lazyWithRetry(() => import("../pages/Tasks").then((m) => ({ default: m.Tasks })));
+const Projects = lazyWithRetry(() => import("../pages/Projects").then((m) => ({ default: m.Projects })));
+const ProjectDetail = lazyWithRetry(() => import("../pages/ProjectDetail").then((m) => ({ default: m.ProjectDetail })));
+const Calendar = lazyWithRetry(() => import("../pages/Calendar").then((m) => ({ default: m.Calendar })));
+const Files = lazyWithRetry(() => import("../pages/Files").then((m) => ({ default: m.Files })));
+const FileDetail = lazyWithRetry(() => import("../pages/FileDetail").then((m) => ({ default: m.FileDetail })));
+const ShareTarget = lazyWithRetry(() => import("../pages/ShareTarget").then((m) => ({ default: m.ShareTarget })));
+const Goals = lazyWithRetry(() => import("../pages/Secondary").then((m) => ({ default: m.Goals })));
+const Notes = lazyWithRetry(() => import("../pages/Secondary").then((m) => ({ default: m.Notes })));
+const Focus = lazyWithRetry(() => import("../pages/Secondary").then((m) => ({ default: m.Focus })));
+const Settings = lazyWithRetry(() => import("../pages/Settings").then((m) => ({ default: m.Settings })));
 
 function RequireAuth() {
   const loc = useLocation();
