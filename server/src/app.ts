@@ -22,6 +22,9 @@ export function createApp() {
   if (!env.isProd) app.use(morgan("dev"));
 
   app.get("/health", (_req, res) => res.json({ success: true, data: { status: "ok", time: new Date().toISOString() } }));
+  app.get("/", (_req, res) =>
+    res.json({ success: true, data: { name: "Focus API", version: "0.1.0", health: "/health", auth: "/api/v1/auth/me" } })
+  );
 
   const v1 = express.Router();
   v1.use("/auth", authRouter);
