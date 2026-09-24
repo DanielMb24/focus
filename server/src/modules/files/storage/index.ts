@@ -2,6 +2,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "../../../config/env.js";
 import { LocalStorageProvider } from "./local.provider.js";
+import { GridFSStorageProvider } from "./gridfs.provider.js";
 import type { StorageProvider } from "./types.js";
 
 /** Résolu par rapport au dossier server/, quel que soit le cwd de lancement. */
@@ -13,8 +14,10 @@ export function storageDir(): string {
 
 let provider: StorageProvider | null = null;
 
-/** Point d'entrée unique. Pour S3/R2/MinIO : brancher ici selon STORAGE_PROVIDER. */
+/** Point d'entrée unique. STORAGE_PROVIDER=local (défaut, dev) ou gridfs (serverless/Vercel). */
 export function storage(): StorageProvider {
-  if (!provider) provider = new LocalStorageProvider(storageDir());
+  if (!provider) {
+    provider = env.STORAGE_PROVIDER === "gridfs" ? new GridFSStorageProvider() : new LocalStorageProvider(storageDir());
+  }
   return provider;
 }

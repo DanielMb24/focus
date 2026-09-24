@@ -17,10 +17,11 @@ export class LocalStorageProvider implements StorageProvider {
     return p;
   }
 
-  async store(tempPath: string, key: string): Promise<void> {
+  async store(tempPath: string, key: string): Promise<string> {
     const dest = this.fullPath(key);
     await fs.promises.mkdir(path.dirname(dest), { recursive: true });
     await fs.promises.rename(tempPath, dest);
+    return key;
   }
 
   readStream(key: string, start?: number, end?: number): NodeJS.ReadableStream & Readable {

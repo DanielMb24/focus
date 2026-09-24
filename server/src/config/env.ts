@@ -20,5 +20,6 @@ export const env = {
   MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB ?? 25),
   MAX_WORKSPACE_STORAGE_MB: Number(process.env.MAX_WORKSPACE_STORAGE_MB ?? 1024),
   STORAGE_DIR: process.env.STORAGE_DIR ?? "./uploads",
+  STORAGE_PROVIDER: process.env.STORAGE_PROVIDER ?? "local",
   isProd: (process.env.NODE_ENV ?? "development") === "production",
 };

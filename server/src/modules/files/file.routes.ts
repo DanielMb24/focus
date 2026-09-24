@@ -180,8 +180,8 @@ fileRouter.post("/", upload.array("files", 10), async (req: AuthRequest, res: Re
       try {
         const { ext, mime } = await verifyFile(f.path, f.originalname, f.mimetype);
         const key = storageKey(body.workspaceId, ext);
-        await storage().store(f.path, key);
-        saved.push(key);
+        const finalKey = await storage().store(f.path, key);
+        saved.push(finalKey);
         const meta = metas[String(i)] ?? {};
         const doc = await FileAssetModel.create({
           workspaceId: body.workspaceId,
@@ -192,7 +192,7 @@ fileRouter.post("/", upload.array("files", 10), async (req: AuthRequest, res: Re
           extension: ext || extensionOf(f.originalname),
           mimeType: mime,
           size: f.size,
-          storageKey: key,
+          storageKey: finalKey,
           storageProvider: storage().name,
           checksum: meta.checksum,
           status: "ready",

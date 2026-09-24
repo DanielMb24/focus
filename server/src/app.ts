@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
-import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
+import { securityHeaders } from "./middleware/security.js";
 import { env } from "./config/env.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { workspaceRouter } from "./modules/workspaces/workspace.routes.js";
@@ -15,7 +15,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
   const app = express();
-  app.use(helmet());
+  app.use(securityHeaders);
   app.use(cors({ origin: env.CLIENT_URL.split(","), credentials: true }));
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
