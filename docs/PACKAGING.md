@@ -83,7 +83,27 @@ Si l'app est hébergée en HTTPS avec le manifest valide (`dist/manifest.webmani
    **Windows (MSIX)** générés dans le cloud, publiables sur les stores.
 2. Le `share_target` et les icônes 192/512 sont déjà en place.
 
-## 4. Fichiers concernés
+## 4. Workflow de release (mises à jour sans réinstallation manuelle)
+
+1. Bumper la version : `client/package.json` + `client/src-tauri/Cargo.toml`
+   + `client/src-tauri/tauri.conf.json` + `client/src/lib/version.ts`
+   (`APP_VERSION`, sans le `v`).
+2. Rebuild exe : `npx tauri build` (avec `TAURI_SIGNING_PRIVATE_KEY_PATH`
+   + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` définis — clé dans
+   `~/.tauri-focus.key`, **à sauvegarder hors PC**).
+3. Rebuild APK : `npm run build && npm run cap:sync` puis
+   `gradlew assembleDebug` (JDK 21).
+4. Signer si besoin + générer `latest.json` (signature du `.exe` dedans).
+5. Publier :
+   ```bash
+   gh release create vX.Y.Z <setup.exe> <.msi> latest.json <apk> \
+     --title "Focus vX.Y.Z" --notes "..."
+   ```
+6. L'exe installé se met à jour **tout seul** au démarrage (updater
+   silencieux + relance). L'APK et le web affichent la mise à jour
+   détectée via l'API Releases dans Paramètres.
+
+## 5. Fichiers concernés
 
 | Élément | Fichier |
 |---|---|
