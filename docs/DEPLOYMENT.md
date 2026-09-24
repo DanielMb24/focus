@@ -2,7 +2,9 @@
 
 Le projet est configuré pour tourner **entier sur Vercel** :
 frontend statique (`client/dist`) + API Express en fonction serverless
-(`api/index.ts`). La racine du projet Vercel reste le **dossier racine**
+(`api/index.mjs`, qui importe le **JS compilé** `server/dist` — jamais les
+`.ts` sources, pour une résolution de fichiers sans ambiguïté).
+La racine du projet Vercel reste le **dossier racine**
 (le `vercel.json` racine fait déjà : build des workspaces, `/api/*` vers
 la fonction, fallback SPA vers `/index.html`).
 
