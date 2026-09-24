@@ -7,8 +7,13 @@ import type { StorageProvider } from "./types.js";
 /** Stockage local (développement). Fichiers servis UNIQUEMENT via routes authentifiées. */
 export class LocalStorageProvider implements StorageProvider {
   readonly name = "local";
-  constructor(private root: string) {
+  private ready = false;
+  constructor(private root: string) {}
+
+  private ensureRoot(): void {
+    if (this.ready) return;
     fs.mkdirSync(this.root, { recursive: true });
+    this.ready = true;
   }
 
   private fullPath(key: string): string {
@@ -18,6 +23,11 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async store(tempPath: string, key: string): Promise<string> {
+    try {
+      this.ensureRoot();
+    } catch {
+      throw new Error("Stockage local indisponible (lecture seule ?). Sur Vercel : STORAGE_PROVIDER=gridfs + STORAGE_DIR=/tmp.");
+    }
     const dest = this.fullPath(key);
     await fs.promises.mkdir(path.dirname(dest), { recursive: true });
     await fs.promises.rename(tempPath, dest);

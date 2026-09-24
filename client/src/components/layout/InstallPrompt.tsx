@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Download, X, Share } from "lucide-react";
 import { isMobileDevice } from "../../lib/capabilities";
 
+const APK_URL = import.meta.env.VITE_APK_URL as string | undefined;
+
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -76,17 +78,23 @@ export function InstallPrompt() {
             <p className="mt-0.5 text-xs text-stone-500">Accès direct depuis le bureau ou l'écran d'accueil, mode plein écran, hors-ligne.</p>
           ) : isIOS() ? (
             <p className="mt-0.5 text-xs text-stone-500">Sur iPhone : touchez <Share size={11} className="inline" /> Partager puis « Sur l'écran d'accueil ».</p>
+          ) : APK_URL ? (
+            <p className="mt-0.5 text-xs text-stone-500">Ou installez directement le fichier Android ci-dessous.</p>
           ) : (
             <p className="mt-0.5 text-xs text-stone-500">Menu du navigateur → « Installer l'application ».</p>
           )}
         </div>
         <button aria-label="Fermer" onClick={dismiss} className="rounded p-1 text-stone-400 hover:bg-stone-100"><X size={15} /></button>
       </div>
-      {deferred && (
+      {deferred ? (
         <button onClick={() => void onInstall()} disabled={busy} className="btn-press mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
           <Download size={15} /> {busy ? "…" : isMobileDevice() ? "Installer l'application" : "Télécharger"}
         </button>
-      )}
+      ) : APK_URL ? (
+        <a href={APK_URL} download className="btn-press mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-2.5 text-sm font-bold text-white hover:bg-emerald-800">
+          <Download size={15} /> Télécharger l'APK
+        </a>
+      ) : null}
     </div>
   );
 }
