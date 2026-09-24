@@ -1,6 +1,8 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
-import { LayoutDashboard, CalendarDays, CheckSquare, FolderKanban, Target, StickyNote, Timer, Settings, Plus, ChevronsLeft, ChevronsRight, Home, WifiOff, Bell, BellRing, Folder, Download } from "lucide-react";
+import { LayoutDashboard, CalendarDays, CheckSquare, FolderKanban, Target, StickyNote, Timer, Settings, Plus, ChevronsLeft, ChevronsRight, Home, WifiOff, Bell, BellRing, Folder, Download, Check, LogOut, UserRound } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { api, setAccessToken } from "../../lib/api";
 import { useUI, useWorkspace } from "../../store/ui";
 import { useWorkspaces, useMe, useCreateWorkspace } from "../../lib/hooks";
 import { useNotifications } from "../../store/notifications";
@@ -135,7 +137,8 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
           <p className="text-[11px] font-bold uppercase tracking-widest text-stone-400">{subtitle}</p>
           <h1 className="mt-0.5 truncate text-2xl font-black tracking-tight sm:text-3xl">{title}</h1>
         </div>
-        <div ref={bellRef} className="relative shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
+        <div ref={bellRef} className="relative">
           <button aria-label={`Notifications${unread ? `, ${unread} non lue(s)` : ""}`} aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}
             className="relative rounded-lg border border-stone-200 bg-white p-2.5 text-stone-600 transition hover:border-stone-400 hover:text-stone-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
             {unread ? <BellRing size={18} /> : <Bell size={18} />}
@@ -168,8 +171,69 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
               </div>
             </div>
           )}
+          </div>
+          <ProfileMenu />
         </div>
       </div>
     </header>
+  );
+}
+
+/** Avatar en haut : profil, switch d'espace de travail, déconnexion. */
+function ProfileMenu() {
+  const { data: me } = useMe();
+  const { data: workspaces = [] } = useWorkspaces();
+  const { activeWorkspaceId, setActive } = useWorkspace();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useOutsideClose(open, ref, () => setOpen(false));
+  const nav = useNavigate();
+  const qc = useQueryClient();
+  const initial = (me?.firstName?.[0] ?? "?").toUpperCase();
+
+  async function logout() {
+    await api("/api/v1/auth/logout", { method: "POST", body: "{}" }).catch(() => null);
+    setAccessToken(null);
+    qc.clear();
+    setOpen(false);
+    nav("/login");
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button aria-label="Menu du profil" aria-expanded={open} onClick={() => setOpen(!open)}
+        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-blue-700 text-sm font-black text-white transition hover:bg-blue-800">
+        {me?.avatar ? <img src={me.avatar} alt="" className="h-full w-full object-cover" /> : initial}
+      </button>
+      {open && (
+        <div role="dialog" aria-label="Profil et espaces" className="animate-pop absolute right-0 top-12 z-50 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="flex items-center gap-2.5 border-b border-stone-200 px-4 py-3 dark:border-zinc-700">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-700 text-sm font-black text-white">{initial}</span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black">{me?.firstName} {me?.lastName ?? ""}</p>
+              <p className="truncate text-xs text-stone-500">{me?.email}</p>
+            </div>
+          </div>
+          <div className="max-h-56 overflow-y-auto p-2">
+            <p className="px-2.5 pb-1 pt-1 text-[11px] font-bold uppercase tracking-widest text-stone-400">Espaces de travail</p>
+            {workspaces.map((w) => (
+              <button key={w._id} onClick={() => { setActive(w._id); setOpen(false); }}
+                className={cn("flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition", activeWorkspaceId === w._id ? "bg-stone-100 font-bold dark:bg-zinc-800" : "hover:bg-stone-50 dark:hover:bg-zinc-800")}>
+                <span className="min-w-0 flex-1 truncate">{w.name}</span>
+                {activeWorkspaceId === w._id && <Check size={15} className="shrink-0 text-blue-700" />}
+              </button>
+            ))}
+          </div>
+          <div className="border-t border-stone-200 p-2 dark:border-zinc-700">
+            <button onClick={() => { setOpen(false); nav("/settings"); }} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium transition hover:bg-stone-100">
+              <UserRound size={15} className="text-stone-500" /> Profil & paramètres
+            </button>
+            <button onClick={() => void logout()} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-red-700 transition hover:bg-red-50">
+              <LogOut size={15} /> Se déconnecter
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
