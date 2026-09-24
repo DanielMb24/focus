@@ -30,6 +30,9 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+  if (!BASE && typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    throw new ApiError(0, "CONFIG", "API non configurée dans ce build — réinstallez la dernière version.");
+  }
   const headers: Record<string, string> = { "Content-Type": "application/json", ...((init.headers as Record<string, string>) ?? {}) };
   if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
   let res: Response;
