@@ -1,9 +1,7 @@
 import { Router } from "express";
-import rateLimit from "express-rate-limit";
 import * as c from "./auth.controller.js";
 import { requireAuth } from "../../middleware/auth.js";
-
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50 });
+import { authLimiter } from "../../middleware/rateLimit.js";
 
 export const authRouter = Router();
 authRouter.post("/register", authLimiter, c.register);
