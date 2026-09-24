@@ -19,7 +19,7 @@ function slugify(name: string): string {
 export async function register(input: { firstName: string; lastName?: string; email: string; password: string; profileType: "student" | "professional" | "entrepreneur" }) {
   const existing = await UserModel.findOne({ email: input.email.toLowerCase() });
   if (existing) throw conflict("Email already in use");
-  const passwordHash = await bcrypt.hash(input.password, 12);
+  const passwordHash = await bcrypt.hash(input.password, env.BCRYPT_ROUNDS);
   const user = await UserModel.create({
     firstName: input.firstName,
     lastName: input.lastName,

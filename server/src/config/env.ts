@@ -16,6 +16,8 @@ export const env = {
   JWT_REFRESH_SECRET: required("JWT_REFRESH_SECRET", "dev-refresh-secret-please-change-32chars"),
   JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN ?? "15m",
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN ?? "30d",
+  // Coût bcrypt : 10 = ~100 ms (serverless hobby), 12+ = hosts dédiés.
+  BCRYPT_ROUNDS: Number(process.env.BCRYPT_ROUNDS ?? 10),
   CLIENT_URL: process.env.CLIENT_URL ?? "http://localhost:5173",
   MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB ?? 25),
   MAX_WORKSPACE_STORAGE_MB: Number(process.env.MAX_WORKSPACE_STORAGE_MB ?? 1024),

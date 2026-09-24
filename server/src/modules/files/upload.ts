@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import os from "os";
 import crypto from "crypto";
 import { fileTypeFromFile } from "file-type";
 import { env } from "../../config/env.js";
@@ -46,8 +47,19 @@ export function storageKey(workspaceId: string, ext: string): string {
   return `${workspaceId}/${y}/${m}/${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
 }
 
-const tmpDir = path.join(storageDir(), "tmp");
-fs.mkdirSync(tmpDir, { recursive: true });
+/** Dossier temporaire : STORAGE_DIR/tmp, avec repli sur l'OS (serverless : seul /tmp est inscriptible). */
+function resolveTmpDir(): string {
+  try {
+    const dir = path.join(storageDir(), "tmp");
+    fs.mkdirSync(dir, { recursive: true });
+    return dir;
+  } catch {
+    const fallback = path.join(os.tmpdir(), "focus-uploads");
+    fs.mkdirSync(fallback, { recursive: true });
+    return fallback;
+  }
+}
+const tmpDir = resolveTmpDir();
 
 export const upload = multer({
   storage: multer.diskStorage({
