@@ -1,53 +1,45 @@
-# DÉPLOIEMENT — Fullstack Vercel (frontend + API serverless)
+# DÉPLOIEMENT — 2 projets Vercel (frontend + API)
 
-Le projet est configuré pour tourner **entier sur Vercel** :
-frontend statique (`client/dist`) + API Express en fonction serverless
-(`api/index.mjs`, qui importe le **JS compilé** `server/dist` — jamais les
-`.ts` sources, pour une résolution de fichiers sans ambiguïté).
-La racine du projet Vercel reste le **dossier racine**
-(le `vercel.json` racine fait déjà : build des workspaces, `/api/*` vers
-la fonction, fallback SPA vers `/index.html`).
+Architecture retenue (canonique Vercel pour monorepo) : **un projet Vercel
+par workspace**. L'ancien projet unique à la racine doit être supprimé du
+dashboard (c'est lui qui produisait l'erreur d'orchestration `fsPath`).
 
-## 1. Variables d'environnement Vercel (obligatoires)
+## Projet 1 — `focus-web` (frontend)
 
-| Variable | Valeur |
-|---|---|
-| `MONGODB_URI` | URI Atlas **avec nom de base** (ex. `.../taskmg-1?...`) |
-| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | secrets longs et distincts |
-| `CLIENT_URL` | URL exacte de l'app (ex. `https://focus-xxx.vercel.app`) |
-| `STORAGE_PROVIDER` | `gridfs` (binaires dans MongoDB = persiste en serverless) |
-| `STORAGE_DIR` | `/tmp` (requis : seul `/tmp` est inscriptible en serverless) |
-| `MAX_FILE_SIZE_MB` | `10` conseillé (timeout hobby : gros uploads = 500) |
-| `MAX_WORKSPACE_STORAGE_MB` | `1024` |
-| `NODE_ENV` | `production` |
+- Vercel → Add New Project → repo `focus`.
+- **Root Directory : `client`** · Framework : Vite · Build : `npm run build` · Output : `dist`.
+- `client/vercel.json` (fallback SPA) et `client/.vercelignore`
+  (exclut `android/`, `src-tauri/`, `dist/`) sont déjà en place.
+- **Env** : `VITE_API_URL` = URL publique du projet API
+  (ex. `https://focus-api.vercel.app`). Vide = même origine (dev local).
 
-> Sans `STORAGE_PROVIDER=gridfs`, les uploads iraient sur le disque
-> éphémère et **disparaîtraient** entre deux requêtes. Le provider local
-> reste le défaut en développement (`STORAGE_PROVIDER=local`).
+## Projet 2 — `focus-api` (backend serverless)
 
-## 2. Redéployer
+- Vercel → Add New Project → **même repo** `focus`.
+- **Root Directory : `server`** · Framework : Other · Build : `npm run build`
+  (pas d'Output Directory : fonctions uniquement).
+- La fonction `server/api/index.mjs` expose tout Express (`/api/*` via
+  `server/vercel.json`) en important le **JS compilé** (`server/dist`).
+- **Env (obligatoires)** :
+  `MONGODB_URI` (avec nom de base), `JWT_ACCESS_SECRET`,
+  `JWT_REFRESH_SECRET`, `CLIENT_URL=https://focus-web-xxx.vercel.app`,
+  `STORAGE_PROVIDER=gridfs`, `STORAGE_DIR=/tmp`,
+  `MAX_FILE_SIZE_MB=10`, `MAX_WORKSPACE_STORAGE_MB=1024`,
+  `NODE_ENV=production`.
 
-```bash
-git add -A && git commit -m "..." && git push
-```
-Vercel rebuild : `npm run build --workspaces` (frontend + `tsc` backend).
-Vérifier `/health` puis inscription → upload → rechargement.
+## Ordre
 
-## 3. Limites serverless connues (honnêtes)
+1. `git add -A && git commit -m "..." && git push` (tout doit être poussé,
+   y compris `server/api/`, sinon la fonction n'existe pas).
+2. Créer + déployer `focus-api`, récupérer son URL, vérifier `/health`.
+3. Renseigner `VITE_API_URL` sur `focus-web`, déployer, tester :
+   inscription → upload → rechargement.
 
-- **Timeout hobby (~10 s)** : inscription (bcrypt) et gros uploads peuvent
-  flirter avec la limite à froid. Si 500 fréquents : réduisez
-  `MAX_FILE_SIZE_MB`, ou passez au plan Pro / backend dédié (Render).
-- **Connexions Mongo** : `connectDb()` est mise en cache et réutilisée
-  entre invocations chaudes ; à froid, une connexion s'ouvre par instance.
-  Surveillez le nombre de connexions Atlas (M0 : 500 max).
-- **Cookies** : `Secure + SameSite=None` exigent du HTTPS des deux côtés —
-  OK sur `*.vercel.app`.
-- **CORS** : `CLIENT_URL` doit contenir l'URL exacte, sinon les appels
-  avec `credentials: include` sont rejetés.
+## Limites honnêtes (serverless hobby ~10 s)
 
-## 4. Alternative backend dédié (si le serverless coince)
-
-`docs/PACKAGING.md` + Render/Railway/VPS avec disque persistant
-(`STORAGE_PROVIDER=local`, `STORAGE_DIR=/app/uploads`). Dans ce cas,
-`VITE_API_URL` côté frontend pointe vers l'URL du backend dédié.
+- Inscription (bcrypt) et gros uploads peuvent frôler le timeout à froid :
+  `MAX_FILE_SIZE_MB=10`, ou plan Pro / backend dédié (Render + disque).
+- `connectDb()` est mise en cache entre invocations chaudes (M0 : 500
+  connexions max — surveiller sur Atlas).
+- Cookies `Secure + SameSite=None` : HTTPS des deux côtés, `CLIENT_URL`
+  exacte sinon CORS rejette les appels authentifiés.

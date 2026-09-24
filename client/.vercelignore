@@ -1,0 +1,5 @@
+# Allège le contexte envoyé à Vercel (le natif se compile en local uniquement).
+android
+src-tauri
+dist
+node_modules
