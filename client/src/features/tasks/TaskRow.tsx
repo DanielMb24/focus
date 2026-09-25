@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Check, Pencil, CalendarClock } from "lucide-react";
 import type { Task } from "../../types";
 import { useToggleTask, useDeleteTask, useUpdateTask } from "../../lib/hooks";
@@ -19,6 +20,7 @@ export function TaskRow({ task, projectName }: { task: Task; projectName?: strin
   const toggle = useToggleTask();
   const del = useDeleteTask();
   const update = useUpdateTask();
+  const nav = useNavigate();
   const [editing, setEditing] = useState(false);
   const done = task.status === "completed";
   const subDone = (task.subtasks ?? []).filter((s) => s.completed).length;
@@ -35,7 +37,7 @@ export function TaskRow({ task, projectName }: { task: Task; projectName?: strin
         {done && <Check size={12} strokeWidth={3.5} />}
       </button>
       <div className="min-w-0 flex-1">
-        <button onClick={() => setEditing(true)} title="Modifier" className={cn("block w-full truncate text-left text-sm font-medium hover:underline", done && "text-stone-400 line-through")}>{task.title}</button>
+        <button onClick={() => nav(`/tasks/${task._id}`)} title="Ouvrir les détails" className={cn("block w-full truncate text-left text-sm font-medium hover:underline", done && "text-stone-400 line-through")}>{task.title}</button>
         <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-stone-500">
           <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: prio[task.priority]?.dot }} />
           {projectName ? `${projectName} · ` : ""}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, X, FolderPlus, LayoutDashboard, CalendarDays, CheckSquare, FolderKanban,
@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useUI, useWorkspace } from "../../store/ui";
 import { useCreateProject } from "../../lib/hooks";
+import { useOutsideClose } from "../../lib/outside";
 import { cn } from "../../lib/cn";
 
 const ACTIONS_ANIM_MS = 40;
@@ -19,6 +20,8 @@ export function SpeedDial() {
   const { activeWorkspaceId } = useWorkspace();
   const createProject = useCreateProject();
   const nav = useNavigate();
+  const rootRef = useRef<HTMLDivElement>(null);
+  useOutsideClose(open, rootRef, close);
 
   function close() { setOpen(false); setProjectMode(false); setProjectName(""); setErr(""); }
 
@@ -54,7 +57,7 @@ export function SpeedDial() {
       {open && <div aria-hidden onClick={close} className="animate-overlay fixed inset-0 z-40 bg-stone-950/40 md:hidden" />}
 
       <div className="pointer-events-none fixed inset-x-0 bottom-24 z-40 flex justify-center px-4 md:hidden" aria-hidden={!open}>
-        <div className={cn(
+        <div ref={rootRef} className={cn(
           "pointer-events-auto flex max-w-full items-start gap-2 overflow-x-auto rounded-2xl border border-stone-200 bg-white/95 px-3 py-3 shadow-lift backdrop-blur transition-all duration-200 dark:border-zinc-700 dark:bg-zinc-900/95",
           open ? "visible translate-y-0 opacity-100" : "invisible translate-y-3 opacity-0"
         )}>

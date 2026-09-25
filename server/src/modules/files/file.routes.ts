@@ -215,6 +215,11 @@ fileRouter.post("/", upload.array("files", 10), async (req: AuthRequest, res: Re
     res.status(201).json(ok({ files: created }));
   } catch (e) {
     for (const k of saved) await storage().delete(k).catch(() => null);
+    // Erreurs de configuration stockage : message explicite (sans secret) plutôt que 500 muet.
+    const msg = e instanceof Error ? e.message : "";
+    if (/Stockage local|not connected|ENOSPC|EACCES|EROFS/i.test(msg)) {
+      return next(new AppError(500, "STORAGE_ERROR", msg));
+    }
     next(e);
   }
 });

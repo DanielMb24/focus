@@ -5,6 +5,7 @@ export type ErrorCode =
   | "NOT_FOUND"
   | "CONFLICT"
   | "RATE_LIMITED"
+  | "STORAGE_ERROR"
   | "INTERNAL";
 
 export class AppError extends Error {

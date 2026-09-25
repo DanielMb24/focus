@@ -38,6 +38,7 @@ function lazyWithRetry<T extends ComponentType<unknown>>(factory: () => Promise<
 const Dashboard = lazyWithRetry(() => import("../pages/Dashboard").then((m) => ({ default: m.Dashboard })));
 const Today = lazyWithRetry(() => import("../pages/Today").then((m) => ({ default: m.Today })));
 const Tasks = lazyWithRetry(() => import("../pages/Tasks").then((m) => ({ default: m.Tasks })));
+const TaskDetail = lazyWithRetry(() => import("../pages/TaskDetail").then((m) => ({ default: m.TaskDetail })));
 const Projects = lazyWithRetry(() => import("../pages/Projects").then((m) => ({ default: m.Projects })));
 const ProjectDetail = lazyWithRetry(() => import("../pages/ProjectDetail").then((m) => ({ default: m.ProjectDetail })));
 const Calendar = lazyWithRetry(() => import("../pages/Calendar").then((m) => ({ default: m.Calendar })));
@@ -75,7 +76,7 @@ function AppShell() {
   return (
     <div className="flex h-full">
       <Sidebar />
-      <main className="mx-auto w-full max-w-6xl flex-1 overflow-y-auto px-4 pb-28 pt-4 sm:px-6 md:pb-10 md:pt-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 overflow-y-auto px-4 pb-28 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 md:pb-10 md:pt-6">
         {apiDown && (
           <div role="alert" className="animate-pop mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
             <span>Serveur injoignable — vérifiez votre connexion, l'URL de l'API et la configuration CORS.</span>
@@ -112,6 +113,7 @@ const router = createBrowserRouter([
           { path: "/", element: <Dashboard /> },
           { path: "/today", element: <Today /> },
           { path: "/tasks", element: <Tasks /> },
+          { path: "/tasks/:taskId", element: <TaskDetail /> },
           { path: "/projects", element: <Projects /> },
           { path: "/projects/:projectId", element: <ProjectDetail /> },
           { path: "/files", element: <Files /> },

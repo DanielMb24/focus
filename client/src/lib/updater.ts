@@ -18,19 +18,25 @@ export async function checkNativeUpdate(): Promise<void> {
 
 export interface ReleaseInfo { tag: string; htmlUrl: string; apkUrl: string | null; exeUrl: string | null }
 
-/** Dernière release GitHub publique (pour APK et téléchargements manuels). */
+let cached: { at: number; value: ReleaseInfo | null } | null = null;
+const CACHE_MS = 5 * 60 * 1000;
+
+/** Dernière release GitHub publique (pour APK et téléchargements manuels). Résultat mémorisé 5 min. */
 export async function fetchLatestRelease(): Promise<ReleaseInfo | null> {
+  if (cached && Date.now() - cached.at < CACHE_MS) return cached.value;
   try {
     const res = await fetch("https://api.github.com/DanielMb24/focus/releases/latest");
     if (!res.ok) return null;
     const j = (await res.json()) as { tag_name: string; html_url: string; assets: { name: string; browser_download_url: string }[] };
     const find = (re: RegExp) => j.assets.find((a) => re.test(a.name))?.browser_download_url ?? null;
-    return {
+    const value: ReleaseInfo = {
       tag: j.tag_name,
       htmlUrl: j.html_url,
       apkUrl: find(/\.apk$/i),
       exeUrl: find(/-setup\.exe$/i) ?? find(/\.msi$/i),
     };
+    cached = { at: Date.now(), value };
+    return value;
   } catch {
     return null;
   }

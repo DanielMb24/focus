@@ -19,11 +19,13 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   const code = e.code ?? (status === 500 ? "INTERNAL" : "INTERNAL");
   // Journalisé partout (message + route, jamais de secrets) : indispensable en serverless.
   console.error(`[api] ${req.method} ${req.path} -> ${status} ${code}: ${e.name ?? "Error"}: ${e.message ?? "unknown"}`);
+  // STORAGE_ERROR : message volontairement exposé (config, aucun secret) pour un diagnostic direct.
+  const expose = code === "STORAGE_ERROR";
   res.status(status).json({
     success: false,
     error: {
       code,
-      message: status === 500 ? "Internal server error" : (e.message ?? "Error"),
+      message: status === 500 && !expose ? "Internal server error" : (e.message ?? "Error"),
       ...(e.details && status !== 500 ? { details: e.details } : {}),
     },
   });

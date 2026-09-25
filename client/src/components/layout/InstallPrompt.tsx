@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Download, X, Share } from "lucide-react";
+import { Download, X, Share, RefreshCw } from "lucide-react";
 import { isMobileDevice } from "../../lib/capabilities";
 import { useOutsideClose } from "../../lib/outside";
+import { APP_VERSION, isNewer } from "../../lib/version";
+import { fetchLatestRelease, type ReleaseInfo } from "../../lib/updater";
 
 const APK_URL = import.meta.env.VITE_APK_URL as string | undefined;
 
@@ -61,9 +63,17 @@ export function InstallPrompt() {
   const { deferred, installed, dismissed, install, dismiss } = useInstallState();
   const [busy, setBusy] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [release, setRelease] = useState<ReleaseInfo | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   useOutsideClose(!hidden && !dismissed && !installed, ref, () => setHidden(true));
+  useEffect(() => {
+    fetchLatestRelease().then(setRelease).catch(() => null);
+  }, []);
   if (installed || dismissed || hidden) return null;
+
+  // Mise à jour RÉELLE détectée : la bannière propose la mise à jour, pas un téléchargement générique.
+  const hasUpdate = release ? isNewer(APP_VERSION, release.tag) : false;
+  const updateUrl = release?.apkUrl ?? release?.exeUrl ?? release?.htmlUrl ?? APK_URL;
 
   async function onInstall() {
     setBusy(true);
@@ -77,8 +87,10 @@ export function InstallPrompt() {
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-lg font-black text-white">F</span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-black">Installer Focus</p>
-          {deferred ? (
+          <p className="text-sm font-black">{hasUpdate && release ? `Mettre à jour Focus (${release.tag})` : "Installer Focus"}</p>
+          {hasUpdate && release ? (
+            <p className="mt-0.5 text-xs text-stone-500">Une vraie mise à jour est disponible (vous avez v{APP_VERSION}).</p>
+          ) : deferred ? (
             <p className="mt-0.5 text-xs text-stone-500">Accès direct depuis le bureau ou l'écran d'accueil, mode plein écran, hors-ligne.</p>
           ) : isIOS() ? (
             <p className="mt-0.5 text-xs text-stone-500">Sur iPhone : touchez <Share size={11} className="inline" /> Partager puis « Sur l'écran d'accueil ».</p>
@@ -90,7 +102,11 @@ export function InstallPrompt() {
         </div>
         <button aria-label="Fermer" onClick={dismiss} className="rounded p-1 text-stone-400 hover:bg-stone-100"><X size={15} /></button>
       </div>
-      {deferred ? (
+      {hasUpdate && updateUrl ? (
+        <a href={updateUrl} className="btn-press mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-2.5 text-sm font-bold text-white hover:bg-emerald-800">
+          <RefreshCw size={15} /> Mettre à jour Focus
+        </a>
+      ) : deferred ? (
         <button onClick={() => void onInstall()} disabled={busy} className="btn-press mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
           <Download size={15} /> {busy ? "…" : isMobileDevice() ? "Installer l'application" : "Télécharger"}
         </button>

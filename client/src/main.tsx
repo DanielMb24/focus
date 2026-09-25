@@ -3,9 +3,9 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import { AppRouter } from "./routes/router";
 import { checkNativeUpdate } from "./lib/updater";
+import { initTheme } from "./lib/theme";
 
-const savedTheme = localStorage.getItem("theme");
-if (savedTheme === "dark") document.documentElement.classList.add("dark");
+initTheme();
 
 // Exe Tauri : mise à jour silencieuse au démarrage (navigateurs : sans effet).
 void checkNativeUpdate();

@@ -6,12 +6,8 @@ import { useWorkspace, useUI } from "../store/ui";
 import { api, setAccessToken } from "../lib/api";
 import { Topbar } from "../components/layout/Shell";
 import { NativeDownloads } from "../components/layout/NativeDownloads";
+import { applyTheme, currentThemeChoice, type ThemeChoice } from "../lib/theme";
 import { Card, Button } from "../components/ui/primitives";
-
-export function applyTheme(theme: string) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  localStorage.setItem("theme", theme);
-}
 
 export function Settings() {
   const { data: me } = useMe();
@@ -22,7 +18,7 @@ export function Settings() {
   const [name, setName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [theme, setTheme] = useState(() => localStorage.getItem("theme") ?? "light");
+  const [theme, setTheme] = useState<ThemeChoice>(() => currentThemeChoice());
   const [msg, setMsg] = useState("");
   const nav = useNavigate();
   void useUI();
@@ -47,7 +43,7 @@ export function Settings() {
     } catch (e) { setMsg(e instanceof Error ? e.message : "Échec"); }
   }
 
-  async function changeTheme(t: string) {
+  async function changeTheme(t: ThemeChoice) {
     setTheme(t);
     applyTheme(t);
     try { await api("/api/v1/auth/me", { method: "PATCH", body: JSON.stringify({ preferences: { theme: t } }) }); } catch { /* offline */ }
@@ -75,14 +71,14 @@ export function Settings() {
           <Button className="mt-3" onClick={saveProfile}>Enregistrer</Button>
         </Card>
         <Card><h2 className="font-black tracking-tight">Apparence</h2>
-          <div className="mt-3 flex gap-2">
-            {(["light", "dark"] as const).map((t) => (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {([["light", "Clair"], ["dark", "Sombre"], ["system", "Système"]] as [ThemeChoice, string][]).map(([t, label]) => (
               <button key={t} onClick={() => changeTheme(t)} className={theme === t ? "rounded-full bg-stone-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900" : "rounded-full bg-stone-200/60 px-4 py-1.5 text-sm text-stone-600 hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"}>
-                {t === "light" ? "Clair" : "Sombre"}
+                {label}
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-stone-500">Le mode sombre s'applique immédiatement et est mémorisé.</p>
+          <p className="mt-2 text-xs text-stone-500">« Système » suit automatiquement le mode clair/sombre de votre appareil.</p>
         </Card>
         <Card><h2 className="font-black tracking-tight">Espaces</h2>
           <div className="mt-2 space-y-1">{workspaces.map((w) => (

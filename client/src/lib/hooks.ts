@@ -84,12 +84,24 @@ export function useCreateTask() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["tasks"] }); qc.invalidateQueries({ queryKey: ["goals"] }); },
   });
 }
+export function useTask(id?: string) {
+  return useQuery({
+    queryKey: ["task", id],
+    queryFn: () => api<{ task: Task }>(`/api/v1/tasks/${id}`).then((d) => d.task),
+    enabled: !!id,
+  });
+}
 export function useUpdateTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, ...input }: { id: string } & Record<string, unknown>) =>
       api<{ task: Task }>(`/api/v1/tasks/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["tasks"] }); qc.invalidateQueries({ queryKey: ["projects"] }); qc.invalidateQueries({ queryKey: ["goals"] }); },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["goals"] });
+      qc.invalidateQueries({ queryKey: ["task", (v as { id: string }).id] });
+    },
   });
 }
 export function useToggleTask() {

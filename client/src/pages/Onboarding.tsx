@@ -26,7 +26,10 @@ export function Onboarding() {
     try {
       await api("/api/v1/auth/onboarding", { method: "POST", body: JSON.stringify({ firstName, profileType, workspaceName, workspaceType: "personal", language: "fr", timezone: "Europe/Paris" }) });
       await queryClient.invalidateQueries();
-      void notify("Bienvenue sur Focus", "Votre espace est prêt — créez votre première tâche.");
+      if (!localStorage.getItem("welcome-notified")) {
+        localStorage.setItem("welcome-notified", "1");
+        void notify("Bienvenue sur Focus", "Votre espace est prêt — créez votre première tâche.", "info", "welcome");
+      }
       nav("/");
     } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); } finally { setLoading(false); }
   }

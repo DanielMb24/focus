@@ -12,9 +12,11 @@ export function UpdatePrompt() {
   });
 
   useEffect(() => {
-    if (needRefresh && !done.current) {
+    // Une seule fois par session, et seulement si une vraie mise à jour attend.
+    if (needRefresh && !done.current && !sessionStorage.getItem("pwa-updated")) {
       done.current = true;
-      void notify("Mise à jour installée", "Focus passe à la nouvelle version…");
+      sessionStorage.setItem("pwa-updated", "1");
+      void notify("Mise à jour installée", "Focus passe à la nouvelle version…", "info", "pwa-update");
       setTimeout(() => updateServiceWorker(true), 2500);
     }
   }, [needRefresh, updateServiceWorker]);
