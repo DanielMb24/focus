@@ -25,3 +25,12 @@ export const env = {
   STORAGE_PROVIDER: process.env.STORAGE_PROVIDER ?? "local",
   isProd: (process.env.NODE_ENV ?? "development") === "production",
 };
+
+/**
+ * Vérification d'email à l'inscription (code + garde-fou).
+ * Lue à chaque appel (pas figée à l'import) : coupée par défaut pour
+ * l'instant, activable sans redéploiement de code via la variable d'env.
+ */
+export function requireEmailVerification(): boolean {
+  return process.env.REQUIRE_EMAIL_VERIFICATION === "true";
+}

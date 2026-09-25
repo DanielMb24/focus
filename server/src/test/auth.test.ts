@@ -90,6 +90,27 @@ describe("auth", () => {
 });
 
 describe("sécurité du compte : vérification email + mots de passe", () => {
+  it("quand la vérification est coupée : inscription directe, sans code", async () => {
+    const prev = process.env.REQUIRE_EMAIL_VERIFICATION;
+    delete process.env.REQUIRE_EMAIL_VERIFICATION;
+    try {
+      const agent = request.agent(app);
+      const before = mailOutbox.length;
+      const reg = await agent.post("/api/v1/auth/register").send({
+        firstName: "NoCheck", email: uniqueEmail("nocheck"), password: "Password123!", profileType: "student",
+      });
+      expect(reg.status).toBe(201);
+      expect(reg.body.data.requiresVerification).toBe(false);
+      expect(mailOutbox.length).toBe(before);
+      const token = reg.body.data.accessToken as string;
+      const list = await agent.get("/api/v1/workspaces").set("Authorization", `Bearer ${token}`);
+      expect(list.status).toBe(200);
+    } finally {
+      if (prev === undefined) delete process.env.REQUIRE_EMAIL_VERIFICATION;
+      else process.env.REQUIRE_EMAIL_VERIFICATION = prev;
+    }
+  });
+
   it("bloque les données tant que l'email n'est pas vérifié", async () => {
     const agent = request.agent(app);
     const reg = await agent.post("/api/v1/auth/register").send({

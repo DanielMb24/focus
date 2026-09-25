@@ -65,8 +65,8 @@ export function Register() {
     <AuthShell title="Bienvenue" sub="Créez votre espace de productivité" footer={<>Déjà inscrit ? <Link to="/login" className="font-bold text-blue-600">Se connecter</Link></>}>
       <form onSubmit={handleSubmit(async (f) => {
         try {
-          const d = await api<{ accessToken: string }>("/api/v1/auth/register", { method: "POST", body: JSON.stringify(f) });
-          setAccessToken(d.accessToken); nav("/verify-email");
+          const d = await api<{ accessToken: string; requiresVerification?: boolean }>("/api/v1/auth/register", { method: "POST", body: JSON.stringify(f) });
+          setAccessToken(d.accessToken); nav(d.requiresVerification ? "/verify-email" : "/onboarding");
         } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); }
       })} className="stagger space-y-3.5">
         <label className="block text-sm font-medium">Prénom<input {...register("firstName")} placeholder="Ex. Daniel" className={inputCls} /></label>

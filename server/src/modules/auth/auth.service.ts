@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { env } from "../../config/env.js";
+import { env, requireEmailVerification } from "../../config/env.js";
 import { UserModel } from "../users/user.model.js";
 import { RefreshTokenModel } from "../users/extra.models.js";
 import { WorkspaceModel, WorkspaceMemberModel } from "../workspaces/workspace.model.js";
@@ -32,11 +32,13 @@ export async function register(input: { firstName: string; lastName?: string; em
     passwordHash,
     profileType: input.profileType,
     authProvider: "local",
-    emailVerified: false,
+    emailVerified: !requireEmailVerification() ? true : false,
   });
-  await sendVerificationCode(user.id as string);
+  if (requireEmailVerification()) {
+    await sendVerificationCode(user.id as string);
+  }
   const session = await issueSession(user.id as string);
-  return { ...session, requiresVerification: true };
+  return { ...session, requiresVerification: requireEmailVerification() };
 }
 
 export async function login(email: string, password: string) {
@@ -45,7 +47,8 @@ export async function login(email: string, password: string) {
   const ok = await bcrypt.compare(password, user.passwordHash as string);
   if (!ok) throw unauthorized("Invalid credentials");
   const session = await issueSession(user.id as string);
-  return { ...session, requiresVerification: (session.user as { emailVerified?: boolean })?.emailVerified === false };
+  const verified = (session.user as { emailVerified?: boolean })?.emailVerified;
+  return { ...session, requiresVerification: requireEmailVerification() && verified === false };
 }
 
 /** Génère + envoie un code à 6 chiffres (10 min). */
@@ -178,3 +181,4 @@ export async function completeOnboarding(userId: string, input: { firstName: str
   await WorkspaceMemberModel.create({ workspaceId: ws._id, userId: user._id, role: "owner" });
   return { user, workspace: ws };
 }
+
