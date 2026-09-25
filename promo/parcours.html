@@ -6,126 +6,150 @@
 <title>Focus — Maquette du parcours utilisateur</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Segoe UI", Roboto, system-ui, sans-serif; background: #f4f5fb; color: #1c1917; padding: 48px 24px; }
-  .wrap { max-width: 1400px; margin: 0 auto; }
-  h1 { font-size: 34px; font-weight: 900; letter-spacing: -0.5px; }
-  h1 span { color: #1d4ed8; }
-  .sub { color: #78716c; margin: 6px 0 36px; }
-  .journey { display: flex; gap: 8px; align-items: stretch; overflow-x: auto; padding-bottom: 16px; }
-  .step { flex: 0 0 300px; }
-  .step .num { display: inline-flex; width: 30px; height: 30px; border-radius: 50%; background: #1d4ed8; color: #fff; font-weight: 800; align-items: center; justify-content: center; margin-bottom: 10px; }
-  .step h2 { font-size: 17px; margin-bottom: 4px; }
-  .step p { font-size: 13px; color: #78716c; margin-bottom: 12px; min-height: 56px; }
-  .arrow { flex: 0 0 32px; align-self: center; font-size: 26px; color: #1d4ed8; font-weight: 900; }
-  .phone { width: 240px; margin: 0 auto; background: #fff; border: 9px solid #18181b; border-radius: 38px; overflow: hidden; box-shadow: 0 18px 40px -18px rgba(16,16,40,.35); }
-  .screen { padding: 12px 10px 8px; min-height: 380px; display: flex; flex-direction: column; gap: 8px; }
-  .notch { width: 90px; height: 18px; background: #18181b; border-radius: 0 0 12px 12px; margin: -12px auto 2px; }
-  .hello { font-size: 15px; font-weight: 900; }
-  .kick { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: #a8a29e; text-transform: uppercase; }
-  .card { border: 1px solid #e7e5e4; border-radius: 12px; padding: 9px 10px; background: #fff; }
+  body { font-family: "Segoe UI", Roboto, system-ui, sans-serif; background: #101c4e; background: linear-gradient(180deg, #0f1e5b 0%, #16266e 340px, #eef0f9 340px); color: #1c1917; padding: 56px 24px 64px; min-height: 100vh; }
+  .wrap { max-width: 1480px; margin: 0 auto; }
+  .kicker { font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #bcd0ff; }
+  h1 { font-size: 38px; font-weight: 900; letter-spacing: -1px; color: #fff; margin-top: 10px; }
+  h1 em { font-style: normal; color: #bcd0ff; }
+  .sub { color: rgba(255,255,255,.7); margin: 8px 0 40px; font-size: 14px; }
+  .journey { display: flex; gap: 0; align-items: stretch; overflow-x: auto; padding-bottom: 20px; }
+  .step { flex: 0 0 308px; background: #fff; border-radius: 20px; padding: 22px 20px 20px; position: relative; box-shadow: 0 18px 44px -20px rgba(8,12,40,.5); }
+  .step .rail { position: absolute; left: 0; top: 26px; bottom: 26px; width: 3px; border-radius: 99px; background: #1d4ed8; }
+  .step .num { font-size: 12px; font-weight: 800; letter-spacing: 2px; color: #1d4ed8; }
+  .step h2 { font-size: 18px; letter-spacing: -.3px; margin: 4px 0 6px; }
+  .step > p { font-size: 12.5px; color: #78716c; line-height: 1.55; margin-bottom: 14px; min-height: 78px; }
+  .link { display: flex; align-items: center; gap: 16px; }
+  .link .arrow { width: 44px; height: 44px; flex-shrink: 0; align-self: center; border-radius: 50%; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.35); color: #fff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .phone { width: 236px; margin: 0 auto; background: #fff; border: 9px solid #18181b; border-radius: 38px; overflow: hidden; box-shadow: 0 14px 30px -16px rgba(16,16,40,.4); }
+  .screen { padding: 0 10px 8px; min-height: 392px; display: flex; flex-direction: column; gap: 8px; background: #fff; }
+  .notch { width: 92px; height: 20px; background: #18181b; border-radius: 0 0 12px 12px; margin: 0 auto 4px; }
+  .status { display: flex; justify-content: space-between; font-size: 8px; color: #a8a29e; padding: 0 4px; }
+  .hello { font-size: 16px; font-weight: 900; letter-spacing: -.3px; }
+  .kick { font-size: 8.5px; font-weight: 800; letter-spacing: 1.6px; color: #a8a29e; text-transform: uppercase; }
+  .card { border: 1px solid #e9e7e4; border-radius: 12px; padding: 9px 10px; background: #fff; box-shadow: 0 1px 2px rgba(28,25,23,.05); }
+  .card.tint { background: #f6f8ff; border-color: #dbe4ff; }
   .row { display: flex; align-items: center; gap: 7px; }
   .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #d6d3d1; flex-shrink: 0; }
-  .dot.done { background: #1d4ed8; border-color: #1d4ed8; }
-  .bar { height: 7px; border-radius: 99px; background: #e7e5e4; overflow: hidden; margin-top: 6px; }
-  .bar i { display: block; height: 100%; background: #1d4ed8; border-radius: 99px; }
-  .pill { display: inline-block; font-size: 9px; font-weight: 700; background: #eff6ff; color: #1d4ed8; border-radius: 99px; padding: 2px 8px; margin-top: 6px; }
-  .btn { background: #1d4ed8; color: #fff; font-size: 11px; font-weight: 700; border-radius: 10px; padding: 9px; text-align: center; }
+  .dot.done { background: #1d4ed8; border-color: #1d4ed8; position: relative; }
+  .t { font-size: 11px; font-weight: 600; }
+  .m { font-size: 9px; color: #a8a29e; margin-top: 1px; }
+  .bar { height: 7px; border-radius: 99px; background: #eceae6; overflow: hidden; margin-top: 7px; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, #1d4ed8, #6d8dff); border-radius: 99px; }
+  .pill { display: inline-block; font-size: 8.5px; font-weight: 800; letter-spacing: .4px; background: #e8efff; color: #1d4ed8; border-radius: 99px; padding: 2px 8px; margin-top: 6px; }
+  .pill.warn { background: #fef3e2; color: #b45309; }
+  .btn { background: #1d4ed8; color: #fff; font-size: 11px; font-weight: 800; border-radius: 10px; padding: 10px; text-align: center; letter-spacing: .2px; }
   .btn.ghost { background: #f5f5f4; color: #44403c; }
-  .field { border: 1px solid #e7e5e4; border-radius: 9px; padding: 8px 9px; font-size: 11px; color: #78716c; background: #fafaf9; }
-  .dock { margin-top: auto; display: flex; justify-content: space-around; border-top: 1px solid #e7e5e4; padding: 8px 0 4px; font-size: 8px; color: #a8a29e; text-align: center; }
-  .dock b { display: block; font-size: 14px; color: #44403c; }
-  .fab { width: 38px; height: 38px; border-radius: 50%; background: #1d4ed8; color: #fff; font-size: 22px; font-weight: 400; display: flex; align-items: center; justify-content: center; margin: -18px auto 0; border: 3px solid #fff; }
+  .field { border: 1px solid #e7e5e4; border-radius: 9px; padding: 8px 9px; font-size: 11px; color: #a8a29e; background: #fafaf9; }
+  .field.fill { color: #1c1917; font-weight: 600; background: #fff; border-color: #d6d3d1; }
+  .seg { display: flex; background: #f5f5f4; border-radius: 99px; padding: 3px; gap: 2px; }
+  .seg span { flex: 1; text-align: center; font-size: 9px; font-weight: 700; padding: 5px 0; border-radius: 99px; color: #a8a29e; }
+  .seg span.on { background: #1c1917; color: #fff; }
+  .dock { margin-top: auto; display: flex; justify-content: space-around; border-top: 1px solid #eceae6; padding: 9px 0 5px; font-size: 7.5px; color: #a8a29e; text-align: center; background: #fff; }
+  .dock b { display: block; font-size: 15px; color: #44403c; font-weight: 400; }
+  .dock .act { color: #1d4ed8; } .dock .act b { color: #1d4ed8; }
+  .fab { width: 36px; height: 36px; border-radius: 50%; background: #1d4ed8; color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; margin: -16px auto 0; border: 3px solid #fff; font-weight: 300; }
   .kbd { font-size: 9px; color: #a8a29e; text-align: center; }
-  @media print { body { background: #fff; padding: 0; } .journey { flex-wrap: wrap; overflow: visible; } }
+  .timer { text-align: center; padding: 6px 0; }
+  .timer b { font-size: 34px; font-weight: 900; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .ring { width: 86px; height: 86px; border-radius: 50%; margin: 2px auto 6px; background: conic-gradient(#1d4ed8 0 65%, #eceae6 65% 100%); display: flex; align-items: center; justify-content: center; }
+  .ring span { width: 66px; height: 66px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; }
+  .foot { text-align: center; color: rgba(255,255,255,.55); font-size: 12px; margin-top: 26px; }
+  @media print { body { background: #fff; padding: 0; } .journey { flex-wrap: wrap; overflow: visible; } .link { display: none; } }
+  @media (max-width: 700px) { h1 { font-size: 28px; } .step > p { min-height: 0; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Focus <span>— parcours utilisateur</span></h1>
-  <p class="sub">De l'inscription à l'installation multi-appareils · Maquette — ne pas embarquer dans l'APK/l'exe</p>
+  <div class="kicker">Focus · Maquette produit</div>
+  <h1>Sept écrans, <em>zéro friction.</em></h1>
+  <p class="sub">Le parcours complet d'un nouvel utilisateur — de l'inscription à l'installation multi-appareils.</p>
   <div class="journey">
 
-    <div class="step">
-      <span class="num">1</span><h2>Compte en 30 secondes</h2>
-      <p>Inscription email + mot de passe, vérification par code quand elle est activée.</p>
-      <div class="phone"><div class="screen"><div class="notch"></div>
+    <div class="step"><span class="rail"></span>
+      <div class="num">01</div><h2>Compte en 30 secondes</h2>
+      <p>Email + mot de passe, code de vérification à 6 chiffres quand la protection est activée, puis c'est parti.</p>
+      <div class="phone"><div class="screen"><div class="notch"></div><div class="status"><span>09:41</span><span>5G ▮▮▮</span></div>
         <div class="hello">Bienvenue</div>
-        <div class="field">Prénom</div><div class="field">vous@exemple.com</div><div class="field">••••••••</div>
+        <div class="field fill">Awa</div><div class="field fill">awa@exemple.com</div><div class="field">Mot de passe (8+ caractères)</div>
         <div class="btn">Créer mon compte</div>
         <div class="kbd">Déjà inscrit ? Se connecter</div>
       </div></div>
-    </div><div class="arrow">→</div>
+    </div><div class="link"><span class="arrow">→</span></div>
 
-    <div class="step">
-      <span class="num">2</span><h2>Onboarding guidé</h2>
-      <p>Profil (étudiant, pro, entrepreneur), premier espace, préférences. Suggestions adaptées au profil.</p>
-      <div class="phone"><div class="screen"><div class="notch"></div>
+    <div class="step"><span class="rail"></span>
+      <div class="num">02</div><h2>Onboarding guidé</h2>
+      <p>Profil, premier espace, préférences. Le même moteur pour tous — seuls les contenus d'accueil s'adaptent.</p>
+      <div class="phone"><div class="screen"><div class="notch"></div><div class="status"><span>09:42</span><span>5G ▮▮▮</span></div>
         <div class="kick">Étape 2 / 4</div><div class="hello">Votre profil ?</div>
-        <div class="card"><b style="font-size:12px">Étudiant</b><div class="kbd" style="text-align:left">Devoirs, examens, révisions</div></div>
-        <div class="card"><b style="font-size:12px">Professionnel</b><div class="kbd" style="text-align:left">Projets, réunions, deadlines</div></div>
+        <div class="card tint"><div class="t">Étudiant</div><div class="m">Devoirs · examens · révisions</div></div>
+        <div class="card"><div class="t">Professionnel</div><div class="m">Projets · réunions · deadlines</div></div>
+        <div class="card"><div class="t">Entrepreneur</div><div class="m">Roadmap · objectifs · équipe</div></div>
         <div class="btn">Continuer</div>
       </div></div>
-    </div><div class="arrow">→</div>
+    </div><div class="link"><span class="arrow">→</span></div>
 
-    <div class="step">
-      <span class="num">3</span><h2>Dashboard : l'essentiel</h2>
-      <p>« Que dois-je faire aujourd'hui ? » — stats, tâches du jour, projets, priorités.</p>
-      <div class="phone"><div class="screen"><div class="notch"></div>
-        <div class="kick">Jeudi 25 septembre</div><div class="hello">Bonjour Daniel</div>
-        <div class="row"><div class="card" style="flex:1"><div class="kbd">Aujourd'hui</div><b>3</b></div><div class="card" style="flex:1"><div class="kbd">En retard</div><b>1</b></div></div>
-        <div class="card"><div class="row"><span class="dot done"></span><span style="font-size:11px">Réviser chapitre 4</span></div><span class="pill">Haute</span></div>
-        <div class="card"><div class="row"><span class="dot"></span><span style="font-size:11px">Rapport mémoire</span></div><div class="bar"><i style="width:65%"></i></div></div>
-        <div class="dock"><span><b>⌂</b>Accueil</span><span><b>✓</b>Tâches</span><span><b>+</b></span><span><b>▤</b>Projets</span><span><b>📅</b>Jour</span></div>
+    <div class="step"><span class="rail"></span>
+      <div class="num">03</div><h2>Le tableau de bord répond</h2>
+      <p>Une seule question chaque matin : que dois-je faire aujourd'hui ? Stats, tâches du jour, projets, priorités.</p>
+      <div class="phone"><div class="screen"><div class="notch"></div><div class="status"><span>09:43</span><span>5G ▮▮▮</span></div>
+        <div class="kick">Jeudi 25 septembre</div><div class="hello">Bonjour Awa</div>
+        <div class="row"><div class="card" style="flex:1"><div class="kick">Jour</div><b>3</b></div><div class="card" style="flex:1"><div class="kick">Retard</div><b>1</b></div><div class="card" style="flex:1"><div class="kick">Faites</div><b>62%</b></div></div>
+        <div class="card"><div class="row"><span class="dot done"></span><span class="t">Réviser chapitre 4</span></div><span class="pill">Haute · Maths</span></div>
+        <div class="card"><div class="t">Rapport mémoire</div><div class="bar"><i style="width:65%"></i></div></div>
+        <div class="dock"><span class="act"><b>⌂</b>Accueil</span><span><b>✓</b>Tâches</span><span><b>+</b></span><span><b>▤</b>Projets</span><span><b>◷</b>Jour</span></div>
       </div></div>
-    </div><div class="arrow">→</div>
+    </div><div class="link"><span class="arrow">→</span></div>
 
-    <div class="step">
-      <span class="num">4</span><h2>Tâches, Kanban, calendrier</h2>
-      <p>Création rapide, sous-tâches, pièces jointes, drag &amp; drop, vue mensuelle.</p>
-      <div class="phone"><div class="screen"><div class="notch"></div>
+    <div class="step"><span class="rail"></span>
+      <div class="num">04</div><h2>Tâches, Kanban, calendrier</h2>
+      <p>Création en deux touches, sous-tâches, pièces jointes, drag &amp; drop tactile, pastilles de retard.</p>
+      <div class="phone"><div class="screen"><div class="notch"></div><div class="status"><span>09:44</span><span>5G ▮▮▮</span></div>
         <div class="hello">Projet Mémoire</div>
-        <div class="row"><div class="card" style="flex:1"><div class="kbd">À faire</div><div style="font-size:11px">● Intro</div></div><div class="card" style="flex:1"><div class="kbd">En cours</div><div style="font-size:11px">● Plan</div></div></div>
-        <div class="card"><div class="row"><span class="dot done"></span><span style="font-size:11px">Soutenance 25/09</span></div></div>
+        <div class="seg"><span class="on">Board</span><span>Liste</span><span>Files</span></div>
+        <div class="row"><div class="card" style="flex:1"><div class="kick">À faire</div><div class="t">Intro</div><div class="t">Biblio</div></div><div class="card" style="flex:1"><div class="kick">En cours</div><div class="t">Plan ✓</div></div></div>
         <div class="btn">+ Nouvelle tâche</div>
-        <div class="dock"><span><b>⌂</b>Accueil</span><span><b>✓</b>Tâches</span><span><b>+</b></span><span><b>▤</b>Projets</span><span><b>📅</b>Jour</span></div>
+        <div class="dock"><span><b>⌂</b>Accueil</span><span class="act"><b>✓</b>Tâches</span><span><b>+</b></span><span><b>▤</b>Projets</span><span><b>◷</b>Jour</span></div>
       </div></div>
-    </div><div class="arrow">→</div>
+    </div><div class="link"><span class="arrow">→</span></div>
 
-    <div class="step">
-      <span class="num">5</span><h2>Fichiers &amp; scan</h2>
-      <p>Explorateur, import photo/caméra, scan multi-pages → PDF, corbeille, hors-ligne.</p>
-      <div class="phone"><div class="screen"><div class="notch"></div>
+    <div class="step"><span class="rail"></span>
+      <div class="num">05</div><h2>Fichiers &amp; scan</h2>
+      <p>Explorateur complet, import photo et caméra, scan multi-pages en PDF, corbeille, copies hors-ligne.</p>
+      <div class="phone"><div class="screen"><div class="notch"></div><div class="status"><span>09:45</span><span>5G ▮▮▮</span></div>
         <div class="hello">Fichiers</div>
-        <div class="card"><b style="font-size:12px">📁 Université</b><div class="kbd" style="text-align:left">12 éléments</div></div>
-        <div class="card"><b style="font-size:12px">📄 rapport.pdf</b><div class="kbd" style="text-align:left">2,3 Mo · ✓ hors-ligne</div></div>
+        <div class="card"><div class="t">Dossier Université</div><div class="m">12 éléments · synchronisé</div></div>
+        <div class="card"><div class="t">rapport.pdf</div><div class="m">2,3 Mo · disponible hors-ligne</div></div>
         <div class="btn">Importer / Scanner</div>
-        <div class="dock"><span><b>⌂</b>Accueil</span><span><b>✓</b>Tâches</span><span><b>+</b></span><span><b>▤</b>Projets</span><span><b>📅</b>Jour</span></div>
+        <div class="dock"><span><b>⌂</b>Accueil</span><span><b>✓</b>Tâches</span><span><b>+</b></span><span class="act"><b>▤</b>Projets</span><span><b>◷</b>Jour</span></div>
       </div></div>
-    </div><div class="arrow">→</div>
+    </div><div class="link"><span class="arrow">→</span></div>
 
-    <div class="step">
-      <span class="num">6</span><h2>Focus &amp; objectifs</h2>
-      <p>Minuteur 25/50 min lié aux tâches, objectifs avec progression auto, notifications utiles.</p>
-      <div class="phone"><div class="screen"><div class="notch"></div>
+    <div class="step"><span class="rail"></span>
+      <div class="num">06</div><h2>Focus &amp; objectifs</h2>
+      <p>Minuteur lié aux tâches, progression automatique des objectifs, et seulement des notifications utiles.</p>
+      <div class="phone"><div class="screen"><div class="notch"></div><div class="status"><span>09:46</span><span>5G ▮▮▮</span></div>
         <div class="hello">Focus</div>
-        <div class="card" style="text-align:center"><div style="font-size:30px;font-weight:900">24:35</div><div class="kbd">Rapport mémoire</div></div>
+        <div class="ring"><span>24:35</span></div>
+        <div class="m" style="text-align:center">Rapport mémoire · session 2</div>
         <div class="row"><div class="btn ghost" style="flex:1">Pause</div><div class="btn" style="flex:1">Terminer</div></div>
-        <div class="card"><b style="font-size:12px">Valider le semestre</b><div class="bar"><i style="width:40%"></i></div></div>
+        <div class="card"><div class="t">Valider le semestre</div><div class="bar"><i style="width:40%"></i></div></div>
       </div></div>
-    </div><div class="arrow">→</div>
+    </div><div class="link"><span class="arrow">→</span></div>
 
-    <div class="step">
-      <span class="num">7</span><h2>Partout, à jour</h2>
-      <p>PWA installable, APK Android, exe Windows à mise à jour silencieuse. Mêmes données synchronisées.</p>
-      <div class="phone"><div class="screen"><div class="notch"></div>
+    <div class="step"><span class="rail"></span>
+      <div class="num">07</div><h2>Partout, à jour</h2>
+      <p>Web, PWA installable, APK Android et exe Windows à mise à jour silencieuse. Mêmes données partout.</p>
+      <div class="phone"><div class="screen"><div class="notch"></div><div class="status"><span>09:47</span><span>5G ▮▮▮</span></div>
         <div class="hello">Paramètres</div>
-        <div class="card"><b style="font-size:12px">Application mobile &amp; bureau</b><div class="kbd" style="text-align:left">Version installée : v0.1.8</div></div>
+        <div class="card tint"><div class="t">Application mobile &amp; bureau</div><div class="m">Version installée : v0.1.8</div></div>
         <div class="btn">Télécharger l'APK</div>
         <div class="btn ghost">Télécharger pour Windows</div>
+        <div class="kbd">Mises à jour proposées automatiquement</div>
       </div></div>
     </div>
 
   </div>
+  <p class="foot">Focus · Étudiants — Professionnels — Entrepreneurs · Maquette hors application (promo/)</p>
 </div>
 </body>
 </html>
