@@ -8,6 +8,7 @@ import { useWorkspaces, useMe, useCreateWorkspace } from "../../lib/hooks";
 import { useNotifications } from "../../store/notifications";
 import { requestSystemNotifications } from "../../lib/notify";
 import { useOutsideClose } from "../../lib/outside";
+import { Logo } from "../ui/Logo";
 import { SpeedDial } from "./SpeedDial";
 import { useInstallState } from "./InstallPrompt";
 import { cn } from "../../lib/cn";
@@ -38,7 +39,7 @@ export function Sidebar() {
     <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-stone-200 bg-white py-4 md:flex dark:border-zinc-800 dark:bg-zinc-950", sidebarCollapsed ? "w-[72px] px-2" : "w-60 px-3")}>
       <div className="flex items-center justify-between px-1">
         <button onClick={() => nav("/")} className="flex items-center gap-2" aria-label="Aller au dashboard">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-900 text-sm font-black text-white dark:bg-zinc-100 dark:text-zinc-900">F</span>
+          <Logo size={32} />
           {!sidebarCollapsed && <span className="text-lg font-black tracking-tight">Focus</span>}
         </button>
         {!sidebarCollapsed && (

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { Logo } from "../components/ui/Logo";
 import { api, setAccessToken } from "../lib/api";
 import { Button } from "../components/ui/primitives";
 import { useState } from "react";
@@ -19,7 +20,7 @@ function AuthShell({ title, sub, children, footer }: { title: string; sub: strin
   return (
     <div className="anim-page auth-bg relative mx-auto flex min-h-full w-full max-w-md flex-col justify-center overflow-hidden px-4 py-10 [&>*]:relative [&>*]:z-[1]">
       <div className="animate-fade-up flex items-center gap-2.5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-700 text-base font-black text-white shadow-subtle">F</span>
+        <Logo size={36} />
         <span className="text-xl font-black tracking-tight">Focus</span>
       </div>
       <h1 className="animate-fade-up mt-6 text-2xl font-black tracking-tight" style={{ animationDelay: "60ms" }}>{title}</h1>

@@ -4,6 +4,7 @@ import { isMobileDevice } from "../../lib/capabilities";
 import { useOutsideClose } from "../../lib/outside";
 import { APP_VERSION, isNewer } from "../../lib/version";
 import { fetchLatestRelease, type ReleaseInfo } from "../../lib/updater";
+import { Logo } from "../ui/Logo";
 
 const APK_URL = import.meta.env.VITE_APK_URL as string | undefined;
 
@@ -85,7 +86,7 @@ export function InstallPrompt() {
   return (
     <div ref={ref} role="dialog" aria-label="Installer l'application" className="animate-pop fixed bottom-24 left-1/2 z-40 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-stone-200 bg-white p-4 shadow-lift md:bottom-6 dark:border-zinc-700 dark:bg-zinc-900">
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-lg font-black text-white">F</span>
+        <Logo size={40} />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-black">{hasUpdate && release ? `Mettre à jour Focus (${release.tag})` : "Installer Focus"}</p>
           {hasUpdate && release ? (
