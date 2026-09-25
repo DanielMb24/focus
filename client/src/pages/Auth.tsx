@@ -43,7 +43,7 @@ export function Login() {
         try {
           const d = await api<{ accessToken: string; user: { onboardingCompleted: boolean; emailVerified?: boolean }; requiresVerification?: boolean }>("/api/v1/auth/login", { method: "POST", body: JSON.stringify(f) });
           setAccessToken(d.accessToken);
-          if (d.requiresVerification || d.user.emailVerified === false) { nav("/verify-email"); return; }
+          if (d.requiresVerification) { nav("/verify-email"); return; }
           nav(d.user.onboardingCompleted ? "/" : "/onboarding");
         } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); }
       })} className="stagger space-y-3.5">

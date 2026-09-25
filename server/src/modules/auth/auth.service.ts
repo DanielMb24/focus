@@ -46,6 +46,11 @@ export async function login(email: string, password: string) {
   if (!user?.passwordHash) throw unauthorized("Invalid credentials");
   const ok = await bcrypt.compare(password, user.passwordHash as string);
   if (!ok) throw unauthorized("Invalid credentials");
+  // Auto-réparation : vérification coupée + compte marqué non-vérifié → on le valide.
+  if (!requireEmailVerification() && (user as { emailVerified?: boolean }).emailVerified === false) {
+    (user as { emailVerified?: boolean }).emailVerified = true;
+    await user.save();
+  }
   const session = await issueSession(user.id as string);
   const verified = (session.user as { emailVerified?: boolean })?.emailVerified;
   return { ...session, requiresVerification: requireEmailVerification() && verified === false };

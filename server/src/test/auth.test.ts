@@ -111,6 +111,26 @@ describe("sécurité du compte : vérification email + mots de passe", () => {
     }
   });
 
+  it("répare à la connexion les comptes restés non-vérifiés", async () => {
+    const prev = process.env.REQUIRE_EMAIL_VERIFICATION;
+    process.env.REQUIRE_EMAIL_VERIFICATION = "true";
+    const agent = request.agent(app);
+    const email = uniqueEmail("legacy");
+    await agent.post("/api/v1/auth/register").send({
+      firstName: "Legacy", email, password: "Password123!", profileType: "student",
+    });
+    delete process.env.REQUIRE_EMAIL_VERIFICATION;
+    try {
+      const login = await agent.post("/api/v1/auth/login").send({ email, password: "Password123!" });
+      expect(login.status).toBe(200);
+      expect(login.body.data.requiresVerification).toBe(false);
+      expect(login.body.data.user.emailVerified).toBe(true);
+    } finally {
+      if (prev === undefined) delete process.env.REQUIRE_EMAIL_VERIFICATION;
+      else process.env.REQUIRE_EMAIL_VERIFICATION = prev;
+    }
+  });
+
   it("bloque les données tant que l'email n'est pas vérifié", async () => {
     const agent = request.agent(app);
     const reg = await agent.post("/api/v1/auth/register").send({
