@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Check, Pencil, CalendarClock } from "lucide-react";
 import type { Task } from "../../types";
@@ -56,7 +57,7 @@ export function TaskRow({ task, projectName }: { task: Task; projectName?: strin
         </button>
       )}
       <button aria-label="Supprimer" onClick={() => del.mutate(task._id)} className="rounded-md p-1.5 text-xs text-stone-300 opacity-0 transition hover:bg-red-50 hover:text-red-700 focus:opacity-100 group-hover:opacity-100 max-md:opacity-100">✕</button>
-      {editing && <TaskEdit task={task} onClose={() => setEditing(false)} />}
+      {editing && createPortal(<TaskEdit task={task} onClose={() => setEditing(false)} />, document.body)}
     </div>
   );
 }
