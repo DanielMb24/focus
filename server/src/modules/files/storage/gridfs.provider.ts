@@ -48,6 +48,14 @@ export class GridFSStorageProvider implements StorageProvider {
     await this.bucket().delete(new ObjectId(key)).catch(() => null);
   }
 
+  async copyFile(srcKey: string, destKey: string): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      const down = this.bucket().openDownloadStream(new ObjectId(srcKey));
+      const up = this.bucket().openUploadStreamWithId(new ObjectId(destKey), destKey);
+      down.pipe(up).on("error", reject).on("finish", () => resolve());
+    });
+  }
+
   async exists(key: string): Promise<boolean> {
     try {
       const doc = await this.bucket().find({ _id: new ObjectId(key) }).next();

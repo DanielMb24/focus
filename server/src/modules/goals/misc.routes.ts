@@ -3,12 +3,13 @@ import { z } from "zod";
 import { GoalModel, NoteModel, FocusSessionModel } from "../users/extra.models.js";
 import { TaskModel } from "../tasks/task.model.js";
 import { requireAuth, AuthRequest } from "../../middleware/auth.js";
+import { requireVerified } from "../../middleware/requireVerified.js";
 import { ok, paginated, notFound, forbidden } from "../../shared/errors.js";
 import { Response, NextFunction } from "express";
 import { requireWorkspaceAccess } from "../workspaces/workspace.access.js";
 
 export const goalRouter = Router();
-goalRouter.use(requireAuth);
+goalRouter.use(requireAuth, requireVerified);
 
 const goalCreate = z.object({
   workspaceId: z.string().min(1),
@@ -79,7 +80,7 @@ goalRouter.delete("/:id", async (req: AuthRequest, res: Response, next: NextFunc
 
 // ---- Notes ----
 export const noteRouter = Router();
-noteRouter.use(requireAuth);
+noteRouter.use(requireAuth, requireVerified);
 const noteCreate = z.object({
   workspaceId: z.string().min(1),
   projectId: z.string().optional().nullable(),
@@ -130,7 +131,7 @@ noteRouter.delete("/:id", async (req: AuthRequest, res: Response, next: NextFunc
 
 // ---- Focus ----
 export const focusRouter = Router();
-focusRouter.use(requireAuth);
+focusRouter.use(requireAuth, requireVerified);
 focusRouter.post("/start", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const schema = z.object({ taskId: z.string().optional().nullable(), workspaceId: z.string().optional().nullable(), plannedSec: z.number().min(60).max(8 * 3600).default(25 * 60) });
@@ -163,3 +164,5 @@ focusRouter.get("/", async (req: AuthRequest, res: Response, next: NextFunction)
     res.json(ok({ sessions: items, todayStats: agg[0] ?? { totalSec: 0, count: 0 } }));
   } catch (e) { next(e); }
 });
+
+

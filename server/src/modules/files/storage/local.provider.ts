@@ -46,6 +46,12 @@ export class LocalStorageProvider implements StorageProvider {
     await fs.promises.unlink(this.fullPath(key)).catch(() => null);
   }
 
+  async copyFile(srcKey: string, destKey: string): Promise<void> {
+    const dest = this.fullPath(destKey);
+    await fs.promises.mkdir(path.dirname(dest), { recursive: true });
+    await fs.promises.copyFile(this.fullPath(srcKey), dest);
+  }
+
   async exists(key: string): Promise<boolean> {
     try {
       await fs.promises.access(this.fullPath(key));

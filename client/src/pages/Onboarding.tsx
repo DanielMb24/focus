@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { notify } from "../lib/notify";
 import { queryClient } from "../lib/queryClient";
 import { Button, Card } from "../components/ui/primitives";
+import { useMe } from "../lib/hooks";
 import { cn } from "../lib/cn";
 
 const profiles = [
@@ -14,6 +15,10 @@ const profiles = [
 
 export function Onboarding() {
   const nav = useNavigate();
+  const { data: me } = useMe();
+  useEffect(() => {
+    if (me && me.emailVerified === false) nav("/verify-email", { replace: true });
+  }, [me, nav]);
   const [step, setStep] = useState(1);
   const [firstName, setFirstName] = useState("");
   const [profileType, setProfileType] = useState<"student" | "professional" | "entrepreneur">("student");

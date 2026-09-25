@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { createApp } from "../app.js";
-import { connectTestDb, clearTestDb, closeTestDb, uniqueEmail } from "./helpers.js";
+import { connectTestDb, clearTestDb, closeTestDb, registerVerifiedUser } from "./helpers.js";
 
 const app = createApp();
 
@@ -26,13 +26,8 @@ describe("files : dossiers, upload, liens, corbeille", () => {
 
   beforeAll(async () => {
     agent = request.agent(app);
-    const reg = await agent.post("/api/v1/auth/register").send({
-      firstName: "Files",
-      email: uniqueEmail("files"),
-      password: "Password123!",
-      profileType: "professional",
-    });
-    token = reg.body.data.accessToken as string;
+    const verified = await registerVerifiedUser(agent, "professional", "Files");
+    token = verified.token;
     const ob = await agent.post("/api/v1/auth/onboarding").set(auth()).send({
       firstName: "Files", profileType: "professional", workspaceName: "Bureau", workspaceType: "work", language: "fr", timezone: "Europe/Paris",
     });
@@ -95,6 +90,17 @@ describe("files : dossiers, upload, liens, corbeille", () => {
     expect(unlink.status).toBe(200);
     const empty = await agent.get("/api/v1/files/by-entity").set(auth()).query({ workspaceId, entityType: "task", entityId: taskId });
     expect(empty.body.data.files).toHaveLength(0);
+  });
+
+  it("copie fichier + dossier récursif", async () => {
+    const copy = await agent.post(`/api/v1/files/${fileId}/copy`).set(auth()).send({});
+    expect(copy.status).toBe(201);
+    expect(copy.body.data.file.name).toContain("Copie de");
+    expect(copy.body.data.file.storageKey).not.toBe(fileId);
+    const folderCopy = await agent.post(`/api/v1/folders/${folderId}/copy`).set(auth()).send({ name: "Travail (copie)" });
+    expect(folderCopy.status).toBe(201);
+    const inCopy = await agent.get("/api/v1/files").set(auth()).query({ workspaceId, folderId: folderCopy.body.data.folder._id });
+    expect(inCopy.body.data.length).toBeGreaterThanOrEqual(1);
   });
 
   it("corbeille : soft delete → restauration → suppression définitive", async () => {

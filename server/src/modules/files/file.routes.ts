@@ -1,8 +1,10 @@
 import { Router } from "express";
 import { z } from "zod";
+import mongoose from "mongoose";
 import { FileAssetModel, FileLinkModel, UploadSessionModel, LINKABLE_ENTITIES } from "./file.model.js";
 import { FolderModel } from "./folder.model.js";
 import { requireAuth, AuthRequest } from "../../middleware/auth.js";
+import { requireVerified } from "../../middleware/requireVerified.js";
 import { ok, paginated, notFound, forbidden, AppError } from "../../shared/errors.js";
 import { Response, NextFunction } from "express";
 import { requireWorkspaceAccess } from "../workspaces/workspace.access.js";
@@ -14,7 +16,7 @@ import { ProjectModel } from "../projects/project.model.js";
 import { GoalModel, NoteModel } from "../users/extra.models.js";
 
 export const fileRouter = Router();
-fileRouter.use(requireAuth);
+fileRouter.use(requireAuth, requireVerified);
 
 async function loadFile(req: AuthRequest, id: string, allowTrashed = true) {
   const f = await FileAssetModel.findById(id);
@@ -115,6 +117,49 @@ fileRouter.get("/quota", async (req: AuthRequest, res: Response, next: NextFunct
     res.json(ok({ quota: { used, limit, count: agg[0]?.count ?? 0 } }));
   } catch (e) { next(e); }
 });
+
+async function workspaceUsedBytes(workspaceId: string): Promise<number> {
+  const agg = await FileAssetModel.aggregate([
+    { $match: { workspaceId: new mongoose.Types.ObjectId(workspaceId), status: { $ne: "trashed" } } },
+    { $group: { _id: null, used: { $sum: "$size" } } },
+  ]);
+  return agg[0]?.used ?? 0;
+}
+
+/** Duplique un fichier (nouveau blob, nouvelles métadonnées). Exporté pour la copie de dossiers. */
+export async function copyFileAsset(userId: string, srcFileId: string, destFolderId?: string | null, newName?: string) {
+  const src = await FileAssetModel.findById(srcFileId);
+  if (!src || src.status === "trashed") throw notFound("File not found");
+  await requireWorkspaceAccess(userId, String(src.workspaceId));
+  const dest = destFolderId === undefined ? (src.folderId ? String(src.folderId) : null) : destFolderId;
+  if (dest) {
+    const folder = await FolderModel.findById(dest);
+    if (!folder || String(folder.workspaceId) !== String(src.workspaceId) || folder.trashedAt) throw notFound("Folder not found");
+  }
+  const used = await workspaceUsedBytes(String(src.workspaceId));
+  if (used + (src.size as number) > env.MAX_WORKSPACE_STORAGE_MB * 1024 * 1024) {
+    throw new AppError(400, "VALIDATION_ERROR", "Quota de stockage de l'espace dépassé");
+  }
+  const finalKey =
+    storage().name === "gridfs" ? new mongoose.Types.ObjectId().toHexString() : storageKey(String(src.workspaceId), String(src.extension ?? ""));
+  await storage().copyFile(String(src.storageKey), finalKey);
+  const name = newName?.trim() || `Copie de ${src.name}`;
+  return FileAssetModel.create({
+    workspaceId: src.workspaceId,
+    folderId: dest,
+    uploadedBy: userId,
+    name: sanitizeName(name),
+    originalName: name.slice(0, 200),
+    extension: src.extension,
+    mimeType: src.mimeType,
+    size: src.size,
+    storageKey: finalKey,
+    storageProvider: storage().name,
+    checksum: src.checksum,
+    status: "ready",
+    metadata: src.metadata,
+  });
+}
 
 async function assertEntity(workspaceId: string, entityType: string, entityId: string, userId: string) {
   if (entityType === "task") {
@@ -302,6 +347,16 @@ fileRouter.delete("/:id/permanent", async (req: AuthRequest, res: Response, next
   } catch (e) { next(e); }
 });
 
+/** POST /files/:id/copy — dupliquer (nouveau blob, métadonnées copiées) */
+fileRouter.post("/:id/copy", async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const schema = z.object({ folderId: z.string().nullable().optional(), name: z.string().min(1).max(200).optional() });
+    const input = schema.parse(req.body);
+    const doc = await copyFileAsset(req.userId as string, req.params.id, input.folderId, input.name);
+    res.status(201).json(ok({ file: doc }));
+  } catch (e) { next(e); }
+});
+
 function streamFile(req: AuthRequest, res: Response, next: NextFunction, disposition: "inline" | "attachment") {
   (async () => {
     const f = await loadFile(req, req.params.id, false);
@@ -369,3 +424,6 @@ fileRouter.delete("/:fileId/link/:linkId", async (req: AuthRequest, res: Respons
     res.json(ok({ message: "Unlinked" }));
   } catch (e) { next(e); }
 });
+
+
+

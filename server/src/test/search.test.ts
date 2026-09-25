@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { createApp } from "../app.js";
-import { connectTestDb, clearTestDb, closeTestDb, uniqueEmail } from "./helpers.js";
+import { connectTestDb, clearTestDb, closeTestDb, registerVerifiedUser } from "./helpers.js";
 
 const app = createApp();
 
@@ -23,13 +23,8 @@ describe("search globale", () => {
 
   beforeAll(async () => {
     agent = request.agent(app);
-    const reg = await agent.post("/api/v1/auth/register").send({
-      firstName: "Search",
-      email: uniqueEmail("search"),
-      password: "Password123!",
-      profileType: "professional",
-    });
-    token = reg.body.data.accessToken as string;
+    const verified = await registerVerifiedUser(agent, "professional", "Search");
+    token = verified.token;
     const ob = await agent.post("/api/v1/auth/onboarding").set(auth()).send({
       firstName: "Search", profileType: "professional", workspaceName: "Bureau", workspaceType: "work", language: "fr", timezone: "Europe/Paris",
     });

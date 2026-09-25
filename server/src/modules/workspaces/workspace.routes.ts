@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { WorkspaceModel, WorkspaceMemberModel } from "./workspace.model.js";
 import { requireAuth, AuthRequest } from "../../middleware/auth.js";
+import { requireVerified } from "../../middleware/requireVerified.js";
 import { validate } from "../../middleware/validate.js";
 import { ok, paginated, notFound, forbidden } from "../../shared/errors.js";
 import { Response, NextFunction } from "express";
@@ -13,7 +14,7 @@ const createSchema = z.object({
 });
 
 export const workspaceRouter = Router();
-workspaceRouter.use(requireAuth);
+workspaceRouter.use(requireAuth, requireVerified);
 
 workspaceRouter.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -71,3 +72,5 @@ workspaceRouter.delete("/:id", async (req: AuthRequest, res: Response, next: Nex
 
 // paginated helper export reused
 export { paginated };
+
+

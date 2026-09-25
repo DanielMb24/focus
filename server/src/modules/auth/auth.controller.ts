@@ -22,18 +22,18 @@ function setRefreshCookie(res: Response, token: string) {
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
     const input = registerSchema.parse(req.body);
-    const { user, accessToken, refreshToken } = await service.register(input);
+    const { user, accessToken, refreshToken, requiresVerification } = await service.register(input);
     setRefreshCookie(res, refreshToken);
-    res.status(201).json(ok({ user, accessToken }));
+    res.status(201).json(ok({ user, accessToken, requiresVerification }));
   } catch (e) { next(e); }
 }
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const input = loginSchema.parse(req.body);
-    const { user, accessToken, refreshToken } = await service.login(input.email, input.password);
+    const { user, accessToken, refreshToken, requiresVerification } = await service.login(input.email, input.password);
     setRefreshCookie(res, refreshToken);
-    res.json(ok({ user, accessToken }));
+    res.json(ok({ user, accessToken, requiresVerification }));
   } catch (e) { next(e); }
 }
 
@@ -81,5 +81,61 @@ export async function onboarding(req: AuthRequest, res: Response, next: NextFunc
     const input = onboardingSchema.parse(req.body);
     const result = await service.completeOnboarding(req.userId as string, input);
     res.json(ok(result));
+  } catch (e) { next(e); }
+}
+
+export async function verifyEmail(req: Request, res: Response, next: NextFunction) {
+  try {
+    const schema = z.object({ email: z.string().email(), code: z.string().min(4).max(10) });
+    const input = schema.parse(req.body);
+    const { user, accessToken, refreshToken } = await service.verifyEmail(input.email, input.code);
+    setRefreshCookie(res, refreshToken);
+    res.json(ok({ user, accessToken }));
+  } catch (e) { next(e); }
+}
+
+export async function resendCode(req: Request, res: Response, next: NextFunction) {
+  try {
+    const schema = z.object({ email: z.string().email() });
+    const input = schema.parse(req.body);
+    const user = await UserModel.findOne({ email: input.email.toLowerCase() });
+    if (!user) { res.json(ok({ message: "Si un compte existe, un code vient d'être envoyé." })); return; }
+    await service.sendVerificationCode(user.id as string);
+    res.json(ok({ message: "Code renvoyé." }));
+  } catch (e) { next(e); }
+}
+
+export async function changePassword(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const schema = z.object({
+      currentPassword: z.string().min(1),
+      newPassword: z.string().min(8).max(128),
+    });
+    const input = schema.parse(req.body);
+    const result = await service.changePassword(req.userId as string, input.currentPassword, input.newPassword);
+    res.json(ok(result));
+  } catch (e) { next(e); }
+}
+
+export async function forgotPassword(req: Request, res: Response, next: NextFunction) {
+  try {
+    const schema = z.object({ email: z.string().email() });
+    const input = schema.parse(req.body);
+    const result = await service.forgotPassword(input.email);
+    res.json(ok(result));
+  } catch (e) { next(e); }
+}
+
+export async function resetPassword(req: Request, res: Response, next: NextFunction) {
+  try {
+    const schema = z.object({
+      email: z.string().email(),
+      token: z.string().min(10),
+      newPassword: z.string().min(8).max(128),
+    });
+    const input = schema.parse(req.body);
+    const { user, accessToken, refreshToken } = await service.resetPassword(input.email, input.token, input.newPassword);
+    setRefreshCookie(res, refreshToken);
+    res.json(ok({ user, accessToken }));
   } catch (e) { next(e); }
 }

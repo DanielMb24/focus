@@ -4,6 +4,7 @@ import { ProjectModel } from "./project.model.js";
 import { TaskModel } from "../tasks/task.model.js";
 import { FolderModel } from "../files/folder.model.js";
 import { requireAuth, AuthRequest } from "../../middleware/auth.js";
+import { requireVerified } from "../../middleware/requireVerified.js";
 import { ok, paginated, notFound } from "../../shared/errors.js";
 import { Response, NextFunction } from "express";
 import { requireWorkspaceAccess } from "../workspaces/workspace.access.js";
@@ -21,7 +22,7 @@ const createSchema = z.object({
 });
 
 export const projectRouter = Router();
-projectRouter.use(requireAuth);
+projectRouter.use(requireAuth, requireVerified);
 
 projectRouter.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -107,3 +108,5 @@ projectRouter.get("/:id/stats", async (req: AuthRequest, res: Response, next: Ne
     res.json(ok({ stats: { byStatus, total, done, progress: total ? Math.round((done / total) * 100) : 0 } }));
   } catch (e) { next(e); }
 });
+
+

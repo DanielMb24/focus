@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { createApp } from "../app.js";
-import { connectTestDb, clearTestDb, closeTestDb, uniqueEmail } from "./helpers.js";
+import { connectTestDb, clearTestDb, closeTestDb, registerVerifiedUser } from "./helpers.js";
 
 const app = createApp();
 
@@ -22,13 +22,8 @@ describe("tasks : CRUD, statut, filtres", () => {
 
   beforeAll(async () => {
     agent = request.agent(app);
-    const reg = await agent.post("/api/v1/auth/register").send({
-      firstName: "Task",
-      email: uniqueEmail("task"),
-      password: "Password123!",
-      profileType: "student",
-    });
-    token = reg.body.data.accessToken as string;
+    const verified = await registerVerifiedUser(agent, "student", "Task");
+    token = verified.token;
     const auth = { Authorization: `Bearer ${token}` };
     const ob = await agent.post("/api/v1/auth/onboarding").set(auth).send({
       firstName: "Task", profileType: "student", workspaceName: "Cours", workspaceType: "school", language: "fr", timezone: "Europe/Paris",

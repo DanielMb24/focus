@@ -164,6 +164,22 @@ export function usePermanentDeleteFile() {
     onSuccess: () => invalidateFiles(qc),
   });
 }
+export function useCopyFile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, folderId, name }: { id: string; folderId?: string | null; name?: string }) =>
+      api<{ file: FileAsset }>(`/api/v1/files/${id}/copy`, { method: "POST", body: JSON.stringify({ folderId, name }) }),
+    onSuccess: () => invalidateFiles(qc),
+  });
+}
+export function useCopyFolder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, parentId, name }: { id: string; parentId?: string | null; name?: string }) =>
+      api<{ folder: Folder }>(`/api/v1/folders/${id}/copy`, { method: "POST", body: JSON.stringify({ parentId, name }) }),
+    onSuccess: () => invalidateFiles(qc),
+  });
+}
 
 // ---- Liaisons ----
 export function useEntityFiles(entityType: string, entityId?: string) {

@@ -11,6 +11,14 @@ const userSchema = new Schema(
     providerId: { type: String },
     profileType: { type: String, enum: ["student", "professional", "entrepreneur"], required: true },
     onboardingCompleted: { type: Boolean, default: false },
+    // Vérification d'email : false explicite = bloqué (requireVerified).
+    // Les comptes antérieurs (champ absent) restent autorisés.
+    emailVerified: { type: Boolean, default: false },
+    verificationCodeHash: { type: String, select: false },
+    verificationExpiresAt: { type: Date },
+    verificationSentAt: { type: Date },
+    passwordResetTokenHash: { type: String, select: false },
+    passwordResetExpiresAt: { type: Date },
     avatar: { type: String },
     preferences: {
       language: { type: String, default: "fr" },

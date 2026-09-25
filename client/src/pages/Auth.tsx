@@ -40,12 +40,15 @@ export function Login() {
     <AuthShell title="Bon retour" sub="Que devez-vous accomplir aujourd'hui ?" footer={<>Pas de compte ? <Link to="/register" className="font-bold text-blue-600">Créer un compte</Link></>}>
       <form onSubmit={handleSubmit(async (f) => {
         try {
-          const d = await api<{ accessToken: string; user: { onboardingCompleted: boolean } }>("/api/v1/auth/login", { method: "POST", body: JSON.stringify(f) });
-          setAccessToken(d.accessToken); nav(d.user.onboardingCompleted ? "/" : "/onboarding");
+          const d = await api<{ accessToken: string; user: { onboardingCompleted: boolean; emailVerified?: boolean }; requiresVerification?: boolean }>("/api/v1/auth/login", { method: "POST", body: JSON.stringify(f) });
+          setAccessToken(d.accessToken);
+          if (d.requiresVerification || d.user.emailVerified === false) { nav("/verify-email"); return; }
+          nav(d.user.onboardingCompleted ? "/" : "/onboarding");
         } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); }
       })} className="stagger space-y-3.5">
         <label className="block text-sm font-medium">Email<input {...register("email")} type="email" placeholder="vous@exemple.com" className={inputCls} /></label>
         <label className="block text-sm font-medium">Mot de passe<input {...register("password")} type="password" placeholder="••••••••" className={inputCls} /></label>
+        <p className="text-right text-xs"><Link to="/forgot-password" className="font-bold text-blue-700 dark:text-blue-400">Mot de passe oublié ?</Link></p>
         {err && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{err}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting}>{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : null} Se connecter</Button>
       </form>
@@ -62,7 +65,7 @@ export function Register() {
       <form onSubmit={handleSubmit(async (f) => {
         try {
           const d = await api<{ accessToken: string }>("/api/v1/auth/register", { method: "POST", body: JSON.stringify(f) });
-          setAccessToken(d.accessToken); nav("/onboarding");
+          setAccessToken(d.accessToken); nav("/verify-email");
         } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); }
       })} className="stagger space-y-3.5">
         <label className="block text-sm font-medium">Prénom<input {...register("firstName")} placeholder="Ex. Daniel" className={inputCls} /></label>

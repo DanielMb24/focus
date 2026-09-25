@@ -4,13 +4,14 @@ import { ProjectModel } from "../projects/project.model.js";
 import { GoalModel, NoteModel } from "../users/extra.models.js";
 import { FileAssetModel } from "../files/file.model.js";
 import { requireAuth, AuthRequest } from "../../middleware/auth.js";
+import { requireVerified } from "../../middleware/requireVerified.js";
 import { ok, forbidden } from "../../shared/errors.js";
 import { Response, NextFunction } from "express";
 import { requireWorkspaceAccess } from "../workspaces/workspace.access.js";
 
 /** Recherche globale en UN seul aller-retour (palette Ctrl+K). */
 export const searchRouter = Router();
-searchRouter.use(requireAuth);
+searchRouter.use(requireAuth, requireVerified);
 
 searchRouter.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -31,3 +32,5 @@ searchRouter.get("/", async (req: AuthRequest, res: Response, next: NextFunction
     res.json(ok({ tasks, projects, files, notes, goals }));
   } catch (e) { next(e); }
 });
+
+

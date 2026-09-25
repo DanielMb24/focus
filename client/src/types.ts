@@ -9,6 +9,7 @@ export interface User {
   email: string;
   profileType: ProfileType;
   onboardingCompleted: boolean;
+  emailVerified?: boolean;
   avatar?: string;
   preferences: { language: string; timezone: string; theme: string };
 }

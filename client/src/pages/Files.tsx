@@ -3,21 +3,22 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  Folder as FolderIcon, FileText, Star, Trash2, RotateCcw, ChevronRight, ChevronLeft, X,
-  LayoutGrid, List as ListIcon, CheckSquare, Download, Share2, FolderPlus, Camera, FolderInput, ScanLine, WifiOff, HardDrive,
-  Search, Plus, Upload,
+  Folder as FolderIcon, FileText, Image as ImageIcon, Film, Music, Archive, File as FileIcon,
+  Search, Plus, Upload, Star, Trash2, RotateCcw, ChevronRight, ChevronLeft, X,
+  LayoutGrid, List as ListIcon, CheckSquare, Download, Share2, FolderPlus, Camera, FolderInput, ScanLine, WifiOff, HardDrive, RefreshCw, Copy,
 } from "lucide-react";
 import { useWorkspace } from "../store/ui";
 import {
   useFolders, useFolder, useCreateFolder, useUpdateFolder, useDeleteFolder, useRestoreFolder,
   usePermanentDeleteFolder, useFolderTemplate, useFiles, useRecentFiles, useFavoriteFiles, useQuota,
-  useUpdateFile, useTrashFile, useRestoreFile, usePermanentDeleteFile,
+  useUpdateFile, useTrashFile, useRestoreFile, usePermanentDeleteFile, useCopyFile, useCopyFolder,
 } from "../lib/files";
 import { uploadFiles } from "../lib/upload";
 import { supportsDirectoryPicker } from "../lib/capabilities";
 import { Topbar } from "../components/layout/Shell";
 import { Card, EmptyState, Button, Skeleton, Badge } from "../components/ui/primitives";
 import { ScannerModal } from "../features/files/ScannerModal";
+import { SyncModal } from "../features/files/SyncModal";
 import { formatSize, fileIcon } from "../lib/fileutils";
 import { useOutsideClose } from "../lib/outside";
 import { useDebouncedValue } from "../lib/debounce";
@@ -47,8 +48,12 @@ export function Files() {
   const [newFolderName, setNewFolderName] = useState("");
   const [actionTarget, setActionTarget] = useState<{ kind: "file" | "folder"; id: string } | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [syncOpen, setSyncOpen] = useState(false);
+  const [moving, setMoving] = useState(false);
+  const [moveDest, setMoveDest] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [uploadErr, setUploadErr] = useState("");
+  const [batchBusy, setBatchBusy] = useState(false);
 
   const fileInput = useRef<HTMLInputElement>(null);
   const photoInput = useRef<HTMLInputElement>(null);
@@ -125,20 +130,59 @@ export function Files() {
     return newId;
   }
 
-  function toggleSelect(id: string) {
-    setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const { data: allFolders = [] } = useFolders(undefined);
+
+  function toggleSelect(kind: "file" | "folder", id: string) {
+    const key = `${kind}:${id}`;
+    setSelected((s) => { const n = new Set(s); if (n.has(key)) n.delete(key); else n.add(key); return n; });
   }
 
-  async function batchTrash() {
-    for (const id of selected) await trashFile.mutateAsync(id);
-    setSelected(new Set()); setSelectMode(false);
+  function selId(key: string): string { return key.split(":")[1]; }
+  function selKind(key: string): "file" | "folder" { return key.startsWith("folder:") ? "folder" : "file"; }
+
+  async function batchTrash(permanent = false) {
+    if (permanent && !window.confirm(`Supprimer définitivement ${selected.size} élément(s) ?`)) return;
+    setBatchBusy(true);
+    try {
+      for (const key of selected) {
+        const id = selId(key);
+        if (selKind(key) === "file") {
+          if (permanent) await permanentDeleteFile.mutateAsync(id);
+          else await trashFile.mutateAsync(id);
+        } else {
+          if (permanent) await permanentDeleteFolder.mutateAsync(id);
+          else await deleteFolder.mutateAsync(id);
+        }
+      }
+    } catch (e) { setUploadErr(e instanceof Error ? e.message : "Échec"); }
+    finally { setBatchBusy(false); setSelected(new Set()); setSelectMode(false); }
   }
   async function batchFav() {
-    for (const id of selected) {
-      const f = shownFiles.find((x) => x._id === id);
-      if (f) await updateFile.mutateAsync({ id, isFavorite: !f.isFavorite });
-    }
-    setSelected(new Set()); setSelectMode(false);
+    setBatchBusy(true);
+    try {
+      for (const key of selected) {
+        const id = selId(key);
+        if (selKind(key) === "file") {
+          const f = shownFiles.find((x) => x._id === id);
+          if (f) await updateFile.mutateAsync({ id, isFavorite: !f.isFavorite });
+        } else {
+          const f = folders.find((x) => x._id === id) ?? allFolders.find((x) => x._id === id);
+          if (f) await updateFolder.mutateAsync({ id, isFavorite: !f.isFavorite });
+        }
+      }
+    } catch (e) { setUploadErr(e instanceof Error ? e.message : "Échec"); }
+    finally { setBatchBusy(false); setSelected(new Set()); setSelectMode(false); }
+  }
+  async function batchMove() {
+    setBatchBusy(true);
+    try {
+      for (const key of selected) {
+        const id = selId(key);
+        if (selKind(key) === "file") await updateFile.mutateAsync({ id, folderId: moveDest || null });
+        else await updateFolder.mutateAsync({ id, parentId: moveDest || null });
+      }
+    } catch (e) { setUploadErr(e instanceof Error ? e.message : "Déplacement impossible (dossier dans lui-même ?)."); }
+    finally { setBatchBusy(false); setMoving(false); setMoveDest(""); setSelected(new Set()); setSelectMode(false); }
   }
 
   const crumbs = folderDetail?.breadcrumb ?? [];
@@ -214,18 +258,50 @@ export function Files() {
             <button onClick={() => setSelectMode(!selectMode)} aria-pressed={selectMode} className={selectMode ? "rounded-lg bg-stone-900 px-3 py-2 text-sm font-medium text-white" : "rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"}>
               <span className="flex items-center gap-1.5"><CheckSquare size={15} /> Sélection</span>
             </button>
+            <div className="relative md:hidden">
+              <button aria-label={fabOpen ? "Fermer le menu" : "Ajouter : dossier, import, photo, scan, synchro"} aria-expanded={fabOpen} onClick={() => setFabOpen(!fabOpen)}
+                className="btn-press flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-white shadow-lift">
+                <Plus size={19} className={cn("transition-transform", fabOpen && "rotate-45")} />
+              </button>
+              {fabOpen && (
+                <div className="animate-pop absolute right-0 top-full z-40 mt-2 w-60 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
+                  <FabMenu
+                    onNewFolder={() => { setFabOpen(false); setShowNewFolder(true); }}
+                    onImportFiles={() => { setFabOpen(false); fileInput.current?.click(); }}
+                    onImportDir={() => { setFabOpen(false); supportsDirectoryPicker() ? void importDirectory() : dirInput.current?.click(); }}
+                    onPhoto={() => { setFabOpen(false); photoInput.current?.click(); }}
+                    onScan={() => { setFabOpen(false); setScannerOpen(true); }}
+                    onSync={() => { setFabOpen(false); setSyncOpen(true); }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {uploadErr && <p role="alert" className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{uploadErr}</p>}
           {!navigator.onLine && <p className="mb-3 flex items-center gap-2 rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-900"><WifiOff size={15} /> Hors ligne — les imports seront mis en file et envoyés à la reconnexion.</p>}
 
           {selected.size > 0 && (
-            <div className="animate-pop mb-3 flex items-center gap-2 rounded-xl bg-stone-900 px-3 py-2 text-sm text-white">
-              <span className="font-bold">{selected.size} sélectionné(s)</span>
-              <span className="flex-1" />
-              <button onClick={batchFav} className="rounded px-2 py-1 hover:bg-white/10">Favoris</button>
-              {view !== "trash" && <button onClick={batchTrash} className="rounded px-2 py-1 hover:bg-white/10">Supprimer</button>}
-              <button onClick={() => { setSelected(new Set()); setSelectMode(false); }} aria-label="Annuler la sélection" className="rounded p-1 hover:bg-white/10"><X size={15} /></button>
+            <div className="animate-pop mb-3 rounded-xl bg-stone-900 px-3 py-2 text-sm text-white">
+              <div className="flex items-center gap-2">
+                <span className="font-bold">{selected.size} sélectionné(s)</span>
+                <span className="flex-1" />
+                <button disabled={batchBusy} onClick={() => void batchFav()} className="rounded px-2 py-1 hover:bg-white/10 disabled:opacity-50">Favoris</button>
+                {view !== "trash" && <button disabled={batchBusy} onClick={() => setMoving(!moving)} className="rounded px-2 py-1 hover:bg-white/10 disabled:opacity-50">Déplacer</button>}
+                {view !== "trash"
+                  ? <button disabled={batchBusy} onClick={() => void batchTrash()} className="rounded px-2 py-1 hover:bg-white/10 disabled:opacity-50">Supprimer</button>
+                  : <button disabled={batchBusy} onClick={() => void batchTrash(true)} className="rounded px-2 py-1 hover:bg-white/10 disabled:opacity-50">Définitif</button>}
+                <button onClick={() => { setSelected(new Set()); setSelectMode(false); setMoving(false); }} aria-label="Annuler la sélection" className="rounded p-1 hover:bg-white/10"><X size={15} /></button>
+              </div>
+              {moving && view !== "trash" && (
+                <div className="mt-2 flex gap-2 border-t border-white/10 pt-2">
+                  <select aria-label="Dossier de destination" value={moveDest} onChange={(e) => setMoveDest(e.target.value)} className="w-full rounded-lg bg-white/10 px-2 py-1.5 text-sm text-white outline-none [&>option]:text-stone-900">
+                    <option value="">Racine (Mes fichiers)</option>
+                    {allFolders.map((f) => <option key={f._id} value={f._id}>{f.name}</option>)}
+                  </select>
+                  <button disabled={batchBusy} onClick={() => void batchMove()} className="shrink-0 rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-bold hover:bg-blue-800 disabled:opacity-50">OK</button>
+                </div>
+              )}
             </div>
           )}
 
@@ -240,8 +316,8 @@ export function Files() {
                 {view === "files" && folders.length > 0 && (
                   <div className={cn("mb-2 grid gap-2", layout === "grid" ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1")}>
                     {folders.map((f) => (
-                      <FolderRow key={f._id} folder={f} layout={layout} selectMode={selectMode} selected={selected.has(f._id)}
-                        onToggle={() => toggleSelect(f._id)}
+                      <FolderRow key={f._id} folder={f} layout={layout} selectMode={selectMode} selected={selected.has(`folder:${f._id}`)}
+                        onToggle={() => toggleSelect("folder", f._id)}
                         onOpen={() => { setFolderId(f._id); setSearch(""); }}
                         onActions={() => setActionTarget({ kind: "folder", id: f._id })} />
                     ))}
@@ -250,8 +326,8 @@ export function Files() {
                 {shownFiles.length > 0 ? (
                   <div className={cn("grid gap-2", layout === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1")}>
                     {shownFiles.map((f) => (
-                      <FileRow key={f._id} file={f} layout={layout} selectMode={selectMode} selected={selected.has(f._id)}
-                        onToggle={() => toggleSelect(f._id)}
+                      <FileRow key={f._id} file={f} layout={layout} selectMode={selectMode} selected={selected.has(`file:${f._id}`)}
+                        onToggle={() => toggleSelect("file", f._id)}
                         onOpen={() => nav(`/files/${f._id}`)}
                         onActions={() => setActionTarget({ kind: "file", id: f._id })} />
                     ))}
@@ -279,20 +355,21 @@ export function Files() {
       <input ref={photoInput} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { if (e.target.files) void handleFiles(e.target.files); e.target.value = ""; }} />
       <input ref={dirInput} type="file" multiple className="hidden" {...{ webkitdirectory: "" } as object} onChange={(e) => { if (e.target.files) void handleFiles(e.target.files); e.target.value = ""; }} />
 
-      {/* FAB menu */}
-      <div ref={fabRef} className="fixed bottom-24 right-4 z-40 md:bottom-8 md:right-8">
+      {/* FAB menu (desktop flottant ; sur mobile intégré à la barre d'outils ci-dessus) */}
+      <div ref={fabRef} className="fixed bottom-24 right-4 z-40 hidden md:bottom-8 md:right-8 md:block">
         {fabOpen && (
-          <div className="animate-pop mb-3 w-56 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
-            <FabItem icon={FolderPlus} label="Nouveau dossier" onClick={() => { setFabOpen(false); setShowNewFolder(true); }} />
-            <FabItem icon={Upload} label="Importer fichiers" onClick={() => { setFabOpen(false); fileInput.current?.click(); }} />
-            {supportsDirectoryPicker()
-              ? <FabItem icon={FolderInput} label="Importer un dossier" onClick={() => void importDirectory()} />
-              : <FabItem icon={FolderInput} label="Importer (sélection multiple)" onClick={() => { setFabOpen(false); dirInput.current?.click(); }} />}
-            <FabItem icon={Camera} label="Prendre une photo" onClick={() => { setFabOpen(false); photoInput.current?.click(); }} />
-            <FabItem icon={ScanLine} label="Scanner un document" onClick={() => { setFabOpen(false); setScannerOpen(true); }} />
+          <div className="animate-pop mb-3 w-60 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
+            <FabMenu
+              onNewFolder={() => { setFabOpen(false); setShowNewFolder(true); }}
+              onImportFiles={() => { setFabOpen(false); fileInput.current?.click(); }}
+              onImportDir={() => { setFabOpen(false); supportsDirectoryPicker() ? void importDirectory() : dirInput.current?.click(); }}
+              onPhoto={() => { setFabOpen(false); photoInput.current?.click(); }}
+              onScan={() => { setFabOpen(false); setScannerOpen(true); }}
+              onSync={() => { setFabOpen(false); setSyncOpen(true); }}
+            />
           </div>
         )}
-        <button aria-label={fabOpen ? "Fermer" : "Ajouter : dossier, import, photo, scan"} aria-expanded={fabOpen} onClick={() => setFabOpen(!fabOpen)}
+        <button aria-label={fabOpen ? "Fermer" : "Ajouter : dossier, import, photo, scan, synchro"} aria-expanded={fabOpen} onClick={() => setFabOpen(!fabOpen)}
           className="btn-press ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-700 text-white shadow-lift hover:bg-blue-800">
           <Plus size={24} className={cn("transition-transform", fabOpen && "rotate-45")} />
         </button>
@@ -324,12 +401,29 @@ export function Files() {
         />
       )}
       {scannerOpen && <ScannerModal folderId={view === "files" ? folderId : null} onClose={() => setScannerOpen(false)} />}
+      {syncOpen && <SyncModal initialFolderId={view === "files" ? folderId : null} onClose={() => setSyncOpen(false)} />}
     </div>
   );
 }
 
 function FolderCrumb({ folderId, name, onNav }: { folderId: string; name: string; onNav: (id: string | null) => void }) {
   return <button onClick={() => onNav(folderId)} className="rounded px-1 hover:underline">{name}</button>;
+}
+
+function FabMenu({ onNewFolder, onImportFiles, onImportDir, onPhoto, onScan, onSync }: {
+  onNewFolder: () => void; onImportFiles: () => void; onImportDir: () => void;
+  onPhoto: () => void; onScan: () => void; onSync: () => void;
+}) {
+  return (
+    <>
+      <FabItem icon={FolderPlus} label="Nouveau dossier" onClick={onNewFolder} />
+      <FabItem icon={Upload} label="Importer fichiers" onClick={onImportFiles} />
+      <FabItem icon={FolderInput} label={supportsDirectoryPicker() ? "Importer un dossier" : "Importer (sélection multiple)"} onClick={onImportDir} />
+      <FabItem icon={Camera} label="Prendre une photo" onClick={onPhoto} />
+      <FabItem icon={ScanLine} label="Scanner un document" onClick={onScan} />
+      <FabItem icon={RefreshCw} label="Synchroniser un dossier" onClick={onSync} />
+    </>
+  );
 }
 
 function FabItem({ icon: Icon, label, onClick }: { icon: typeof Upload; label: string; onClick: () => void }) {
@@ -398,10 +492,15 @@ function ActionSheet({ target, view, onClose, onOpenFile, onOpenFolder }: {
   const deleteFolder = useDeleteFolder();
   const restoreFolder = useRestoreFolder();
   const permanentDeleteFolder = usePermanentDeleteFolder();
+  const copyFile = useCopyFile();
+  const copyFolder = useCopyFolder();
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState("");
   const [moving, setMoving] = useState(false);
   const [dest, setDest] = useState("");
+  const [copying, setCopying] = useState(false);
+  const [copyDest, setCopyDest] = useState("");
+  const [busy, setBusy] = useState(false);
 
   async function saveRename() {
     if (!name.trim()) return;
@@ -431,6 +530,17 @@ function ActionSheet({ target, view, onClose, onOpenFile, onOpenFolder }: {
     else await restoreFolder.mutateAsync(target.id);
     onClose();
   }
+  async function doCopy() {
+    setBusy(true);
+    try {
+      if (target.kind === "file") await copyFile.mutateAsync({ id: target.id, folderId: copyDest || null });
+      else {
+        if (copyDest === target.id) return;
+        await copyFolder.mutateAsync({ id: target.id, parentId: copyDest || null });
+      }
+      onClose();
+    } finally { setBusy(false); }
+  }
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Actions" className="animate-overlay fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 sm:items-center sm:p-4" onClick={onClose}>
@@ -441,10 +551,11 @@ function ActionSheet({ target, view, onClose, onOpenFile, onOpenFolder }: {
         {view === "trash"
           ? <SheetBtn icon={RotateCcw} label="Restaurer" onClick={() => void doRestore()} />
           : <SheetBtn icon={Star} label="Basculer favori" onClick={() => { void (target.kind === "file" ? updateFile.mutateAsync({ id: target.id, isFavorite: true }).then(onClose) : updateFolder.mutateAsync({ id: target.id, isFavorite: true }).then(onClose)); }} />}
-        {!renaming && !moving && (
+        {!renaming && !moving && !copying && (
           <>
             <SheetBtn icon={FileText} label="Renommer" onClick={() => setRenaming(true)} />
             {view !== "trash" && <SheetBtn icon={FolderIcon} label="Déplacer" onClick={() => setMoving(true)} />}
+            {view !== "trash" && <SheetBtn icon={Copy} label="Copier vers…" onClick={() => setCopying(true)} />}
             <SheetBtn icon={Trash2} label={view === "trash" ? "Supprimer définitivement" : "Supprimer"} danger onClick={() => void doDelete()} />
           </>
         )}
@@ -468,6 +579,20 @@ function ActionSheet({ target, view, onClose, onOpenFile, onOpenFolder }: {
             <div className="mt-2 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setMoving(false)}>Annuler</Button>
               <Button onClick={() => void saveMove()}>Déplacer</Button>
+            </div>
+          </div>
+        )}
+        {copying && (
+          <div className="p-3">
+            <label className="text-sm font-medium">Copier vers
+              <select value={copyDest} onChange={(e) => setCopyDest(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                <option value="">Racine (Mes fichiers)</option>
+                {folders.filter((f) => f._id !== target.id).map((f) => <option key={f._id} value={f._id}>{f.name}</option>)}
+              </select>
+            </label>
+            <div className="mt-2 flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setCopying(false)}>Annuler</Button>
+              <Button disabled={busy} onClick={() => void doCopy()}>{busy ? "Copie…" : "Copier"}</Button>
             </div>
           </div>
         )}

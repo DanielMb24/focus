@@ -15,6 +15,8 @@ import { useWorkspaces } from "../lib/hooks";
 import { Skeleton } from "../components/ui/primitives";
 import { Login, Register } from "../pages/Auth";
 import { Onboarding } from "../pages/Onboarding";
+import { VerifyEmail, ForgotPassword, ResetPassword } from "../pages/AuthRecovery";
+import { useMe } from "../lib/hooks";
 
 const STALE_CHUNK_KEY = "chunk-retry";
 
@@ -53,6 +55,14 @@ const Settings = lazyWithRetry(() => import("../pages/Settings").then((m) => ({ 
 function RequireAuth() {
   const loc = useLocation();
   if (!getAccessToken()) return <Navigate to="/login" state={{ from: loc.pathname }} replace />;
+  return <Outlet />;
+}
+
+/** Bloque l'app tant que l'email n'est pas vérifié (comptes antérieurs exemptés). */
+function RequireVerified() {
+  const { data: me, isLoading } = useMe();
+  if (isLoading || !me) return <Skeleton className="h-40" />;
+  if (me.emailVerified === false) return <Navigate to="/verify-email" replace />;
   return <Outlet />;
 }
 
@@ -103,13 +113,19 @@ function AppShell() {
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
+  { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/reset-password", element: <ResetPassword /> },
   { path: "/onboarding", element: <Onboarding /> },
+  { path: "/verify-email", element: <VerifyEmail /> },
   {
     element: <RequireAuth />,
     children: [
       {
-        element: <AppShell />,
+        element: <RequireVerified />,
         children: [
+          {
+            element: <AppShell />,
+            children: [
           { path: "/", element: <Dashboard /> },
           { path: "/today", element: <Today /> },
           { path: "/tasks", element: <Tasks /> },
@@ -124,6 +140,8 @@ const router = createBrowserRouter([
           { path: "/notes", element: <Notes /> },
           { path: "/focus", element: <Focus /> },
           { path: "/settings", element: <Settings /> },
+            ],
+          },
         ],
       },
     ],

@@ -1,20 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { createApp } from "../app.js";
-import { connectTestDb, clearTestDb, closeTestDb, uniqueEmail } from "./helpers.js";
+import { connectTestDb, clearTestDb, closeTestDb, registerVerifiedUser } from "./helpers.js";
 
 const app = createApp();
 
 async function authedAgent(profileType = "professional") {
   const agent = request.agent(app);
-  const email = uniqueEmail("ws");
-  const reg = await agent.post("/api/v1/auth/register").send({
-    firstName: "Ws",
-    email,
-    password: "Password123!",
-    profileType,
-  });
-  return { agent, token: reg.body.data.accessToken as string };
+  const { token } = await registerVerifiedUser(agent, profileType, "Ws");
+  return { agent, token };
 }
 
 beforeAll(async () => {

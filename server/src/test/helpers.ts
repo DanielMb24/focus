@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { env } from "../config/env.js";
+import { mailOutbox } from "../modules/mail/mailer.js";
 
 export function testDbUri(): string {
   const u = new URL(env.MONGODB_URI);
@@ -24,4 +25,23 @@ export async function closeTestDb(): Promise<void> {
 
 export function uniqueEmail(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@test.local`;
+}
+
+interface TestAgent {
+  post(url: string): { send(body: object): Promise<{ body: { data: { accessToken: string } } }> };
+}
+
+/** Inscrit un utilisateur puis vérifie son email via la boîte de sortie (sans SMTP). */
+export async function registerVerifiedUser(
+  agent: TestAgent,
+  profile: string = "professional",
+  firstName = "Test"
+): Promise<{ email: string; token: string }> {
+  const email = uniqueEmail("verified");
+  const reg = await agent.post("/api/v1/auth/register").send({ firstName, email, password: "Password123!", profileType: profile });
+  const code = /(\d{6})/.exec(mailOutbox[mailOutbox.length - 1]?.html ?? "")?.[1] ?? "";
+  if (!code) throw new Error("Verification code not found in outbox");
+  const verify = await agent.post("/api/v1/auth/verify-email").send({ email, code });
+  if (!verify.body.data.accessToken) throw new Error("Verification failed");
+  return { email, token: verify.body.data.accessToken as string };
 }

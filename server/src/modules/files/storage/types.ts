@@ -11,6 +11,8 @@ export interface StorageProvider {
   stat(key: string): Promise<Stats>;
   delete(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
+  /** Duplique un binaire (copier, jamais de partage de blob entre deux fichiers). */
+  copyFile(srcKey: string, destKey: string): Promise<void>;
 }
 
 /* L'implémentation S3 (AWS / R2 / MinIO) viendra ici :

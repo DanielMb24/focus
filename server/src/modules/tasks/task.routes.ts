@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { TaskModel } from "./task.model.js";
 import { requireAuth, AuthRequest } from "../../middleware/auth.js";
+import { requireVerified } from "../../middleware/requireVerified.js";
 import { ok, paginated, notFound, forbidden } from "../../shared/errors.js";
 import { Response, NextFunction } from "express";
 import { requireWorkspaceAccess } from "../workspaces/workspace.access.js";
@@ -24,7 +25,7 @@ const createSchema = z.object({
 });
 
 export const taskRouter = Router();
-taskRouter.use(requireAuth);
+taskRouter.use(requireAuth, requireVerified);
 
 function buildFilter(q: Record<string, string>, userId: string): Record<string, unknown> {
   const f: Record<string, unknown> = { createdBy: userId };
@@ -129,3 +130,5 @@ taskRouter.delete("/:id", async (req: AuthRequest, res: Response, next: NextFunc
     res.json(ok({ message: "Deleted" }));
   } catch (e) { next(e); }
 });
+
+

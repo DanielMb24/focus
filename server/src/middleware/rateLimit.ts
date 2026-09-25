@@ -37,3 +37,9 @@ export function rateLimit(options: { windowMs: number; max: number; message?: st
 
 /** 50 tentatives / 15 min / IP sur l'authentification. */
 export const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50 });
+
+/** 15 tentatives / 15 min / IP sur codes et liens sensibles (anti brute-force). */
+export const verifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === "test" ? 1000 : 15,
+});
