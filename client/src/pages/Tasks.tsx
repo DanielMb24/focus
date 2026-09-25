@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTasks, useProjects } from "../lib/hooks";
+import { useDebouncedValue } from "../lib/debounce";
 import { Topbar } from "../components/layout/Shell";
 import { TaskRow } from "../features/tasks/TaskRow";
 import { EmptyState, Skeleton, Button } from "../components/ui/primitives";
@@ -13,7 +14,9 @@ export function Tasks() {
   const [priority, setPriority] = useState("");
   const [projectId, setProjectId] = useState("");
   const [tag, setTag] = useState("");
-  const { data: tasks = [], isLoading } = useTasks({ search: search || undefined, priority: priority || undefined, projectId: projectId || undefined, tags: tag.trim() || undefined });
+  const dq = useDebouncedValue(search);
+  const dtag = useDebouncedValue(tag);
+  const { data: tasks = [], isLoading } = useTasks({ search: dq || undefined, priority: priority || undefined, projectId: projectId || undefined, tags: dtag.trim() || undefined });
   const { data: projects = [] } = useProjects();
   const { setQuickAdd } = useUI();
   const pname = (id?: string) => projects.find((p) => p._id === id)?.name;

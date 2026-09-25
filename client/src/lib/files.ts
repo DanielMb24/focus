@@ -101,6 +101,7 @@ export function useFiles(filter: FileFilter = {}) {
     queryKey: ["files", activeWorkspaceId, JSON.stringify(filter)],
     queryFn: () => api<{ data: FileAsset[] } | FileAsset[]>(`/api/v1/files?${params}`).then((d) => (Array.isArray(d) ? d : d.data ?? [])),
     enabled: !!activeWorkspaceId,
+    placeholderData: (prev) => prev,
   });
 }
 export function useFileDetail(id?: string) {

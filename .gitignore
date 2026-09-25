@@ -8,3 +8,4 @@ server/uploads/tmp/
 client/src-tauri/target/
 client/android/app/build/
 client/android/.gradle/
+*.timestamp-*.mjs

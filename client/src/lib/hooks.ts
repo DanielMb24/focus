@@ -75,6 +75,7 @@ export function useTasks(filter: TaskFilter = {}) {
   return useQuery({
     queryKey: key,
     queryFn: () => api<{ data: Task[] } | Task[]>(`/api/v1/tasks?${params}`).then((d) => (Array.isArray(d) ? d : ((d as unknown as { data: Task[] }).data ?? []))),
+    placeholderData: (prev) => prev,
   });
 }
 export function useCreateTask() {

@@ -20,6 +20,7 @@ import { Card, EmptyState, Button, Skeleton, Badge } from "../components/ui/prim
 import { ScannerModal } from "../features/files/ScannerModal";
 import { formatSize, fileIcon } from "../lib/fileutils";
 import { useOutsideClose } from "../lib/outside";
+import { useDebouncedValue } from "../lib/debounce";
 import { cn } from "../lib/cn";
 import type { Folder, FileAsset } from "../types.files";
 
@@ -35,6 +36,7 @@ export function Files() {
   const [view, setView] = useState<View>("files");
   const [folderId, setFolderId] = useState<string | null>(() => params.get("folder"));
   const [search, setSearch] = useState("");
+  const dsearch = useDebouncedValue(search);
   const [type, setType] = useState("");
   const [sort, setSort] = useState("newest");
   const [layout, setLayout] = useState<"grid" | "list">(() => (localStorage.getItem("files-layout") as "grid" | "list") ?? "list");
@@ -58,8 +60,8 @@ export function Files() {
   const { data: folders = [], isLoading: foldersLoading } = useFolders(view === "files" ? folderId : undefined, view === "trash" ? { trashed: true } : view === "favorites" ? { favorites: true } : undefined);
   const { data: files = [], isLoading: filesLoading } = useFiles(
     view === "recent" || view === "favorites" || view === "trash"
-      ? { favorites: view === "favorites", trashed: view === "trash", search: search || undefined, type: type || undefined, sort }
-      : { folderId, search: search || undefined, type: type || undefined, sort }
+      ? { favorites: view === "favorites", trashed: view === "trash", search: dsearch || undefined, type: type || undefined, sort }
+      : { folderId, search: dsearch || undefined, type: type || undefined, sort }
   );
   const { data: recent = [] } = useRecentFiles();
   const { data: favFiles = [] } = useFavoriteFiles();

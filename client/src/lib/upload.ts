@@ -34,8 +34,11 @@ export async function extractMeta(file: File): Promise<PendingUpload["meta"]> {
       } finally { URL.revokeObjectURL(url); }
     }
     const buf = await file.arrayBuffer();
-    const hash = await crypto.subtle.digest("SHA-256", buf);
-    meta.checksum = [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    // SHA-256 ignoré au-delà de 20 Mo : il retarderait l'envoi pour rien (checksum optionnel serveur).
+    if (buf.byteLength <= 20 * 1024 * 1024) {
+      const hash = await crypto.subtle.digest("SHA-256", buf);
+      meta.checksum = [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
   } catch { /* métadonnées best-effort */ }
   return meta;
 }
