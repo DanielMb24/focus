@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, type ComponentType } from "react";
 import { createBrowserRouter, RouterProvider, Navigate, Outlet, useLocation } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../lib/queryClient";
-import { getAccessToken } from "../lib/api";
+import { getAccessToken, setAccessToken } from "../lib/api";
 import { Sidebar, MobileNav } from "../components/layout/Shell";
 import { QuickAdd } from "../features/tasks/QuickAdd";
 import { CommandPalette } from "../components/layout/CommandPalette";
@@ -60,8 +60,14 @@ function RequireAuth() {
 
 /** Bloque l'app tant que l'email n'est pas vérifié (comptes antérieurs exemptés). */
 function RequireVerified() {
-  const { data: me, isLoading } = useMe();
-  if (isLoading || !me) return <Skeleton className="h-40" />;
+  const { data: me, isLoading, isError } = useMe();
+  if (isLoading) return <Skeleton className="h-40" />;
+  // Session réellement morte (même le refresh a échoué) : retour au login,
+  // jamais d'écran vide. Le cache offline persistant couvre le mode avion.
+  if (isError || !me) {
+    setAccessToken(null);
+    return <Navigate to="/login" replace />;
+  }
   if (me.emailVerified === false) return <Navigate to="/verify-email" replace />;
   return <Outlet />;
 }

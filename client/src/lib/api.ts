@@ -44,7 +44,10 @@ export async function api<T>(path: string, init: RequestInit = {}, retry = true)
     throw new ApiError(0, "NETWORK", "Serveur injoignable");
   }
   if (useUI.getState().apiDown) useUI.getState().setApiDown(false);
-  if (res.status === 401 && retry && !path.includes("/auth/")) {
+  // Seuls login/register/refresh/logout sont exclus du refresh auto :
+  // tout le reste (dont /me) tente de renouveler la session avant d'échouer.
+  const NO_RETRY = /\/auth\/(login|register|refresh|logout)/;
+  if (res.status === 401 && retry && !NO_RETRY.test(path)) {
     const t = await refreshAccess();
     if (t) return api<T>(path, init, false);
     setAccessToken(null);
