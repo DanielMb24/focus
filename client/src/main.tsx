@@ -4,8 +4,11 @@ import "./index.css";
 import { AppRouter } from "./routes/router";
 import { checkNativeUpdate } from "./lib/updater";
 import { initTheme } from "./lib/theme";
+import { initOfflinePersistence } from "./lib/offlineCache";
 
 initTheme();
+// Données persistées sur l'appareil : l'app reste consultable hors connexion.
+initOfflinePersistence();
 
 // Exe Tauri : mise à jour silencieuse au démarrage (navigateurs : sans effet).
 void checkNativeUpdate();

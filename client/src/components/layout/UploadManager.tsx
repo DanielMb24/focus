@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X, RotateCcw, UploadCloud, WifiOff } from "lucide-react";
 import { useUploads } from "../../store/uploads";
 import { flushPendingUploads } from "../../lib/upload";
+import { flushOutbox } from "../../lib/offline";
 import { pendingUploads } from "../../lib/idb";
 import { cn } from "../../lib/cn";
 
@@ -12,11 +13,17 @@ export function UploadManager() {
   const active = items.filter((i) => i.status === "uploading" || i.status === "pending" || i.status === "failed" || i.status === "paused");
 
   useEffect(() => {
-    function onOnline() { void flushPendingUploads(); }
+    function onOnline() { void flushPendingUploads(); void flushOutbox(); }
+    function onVisible() { if (document.visibilityState === "visible") void flushOutbox(); }
     window.addEventListener("online", onOnline);
+    document.addEventListener("visibilitychange", onVisible);
     // Rejeu au montage si file en attente
     pendingUploads.count().then((n) => { if (n > 0 && navigator.onLine) void flushPendingUploads(); }).catch(() => null);
-    return () => window.removeEventListener("online", onOnline);
+    void flushOutbox();
+    return () => {
+      window.removeEventListener("online", onOnline);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   useEffect(() => {

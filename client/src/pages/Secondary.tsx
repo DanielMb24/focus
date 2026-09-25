@@ -5,6 +5,7 @@ import { useGoals, useNotes, useFocusSessions, useTasks } from "../lib/hooks";
 import { useWorkspace } from "../store/ui";
 import { Topbar } from "../components/layout/Shell";
 import { Card, EmptyState, Button, Skeleton } from "../components/ui/primitives";
+import { offlineFirst, prependNoteToCache } from "../lib/offline";
 import { GoalEdit } from "../features/goals/GoalEdit";
 import { AttachFiles } from "../features/files/AttachFiles";
 import { notify } from "../lib/notify";
@@ -48,7 +49,16 @@ export function Notes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const create = useMutation({
-    mutationFn: (t: string) => api("/api/v1/notes", { method: "POST", body: JSON.stringify({ workspaceId: activeWorkspaceId, title: t, content: "" }) }),
+    mutationFn: async (t: string) => {
+      const payload = { workspaceId: activeWorkspaceId, title: t, content: "" };
+      const temp = { _id: `local-${Date.now()}`, workspaceId: activeWorkspaceId as string, title: t, content: "", updatedAt: new Date().toISOString() };
+      return offlineFirst(
+        { kind: "note", op: "create", tempId: temp._id, payload },
+        () => api("/api/v1/notes", { method: "POST", body: JSON.stringify(payload) }),
+        {},
+        () => prependNoteToCache(temp)
+      );
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notes"] }),
   });
   const save = useMutation({

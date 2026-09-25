@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
+import { offlineFirst, offlineCache, newTempTask } from "./offline";
 import type { Task, Project, Workspace, User, Goal, Note, FocusSession } from "../types";
 import { useWorkspace } from "../store/ui";
 
@@ -81,7 +82,15 @@ export function useTasks(filter: TaskFilter = {}) {
 export function useCreateTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: Record<string, unknown>) => api<{ task: Task }>("/api/v1/tasks", { method: "POST", body: JSON.stringify(input) }),
+    mutationFn: async (input: Record<string, unknown>) => {
+      const temp = newTempTask(input);
+      return offlineFirst(
+        { kind: "task", op: "create", tempId: temp._id, payload: { ...input } },
+        () => api<{ task: Task }>("/api/v1/tasks", { method: "POST", body: JSON.stringify(input) }),
+        { task: temp },
+        () => offlineCache.prependTaskToCache(temp)
+      );
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["tasks"] }); qc.invalidateQueries({ queryKey: ["goals"] }); },
   });
 }
@@ -96,7 +105,12 @@ export function useUpdateTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, ...input }: { id: string } & Record<string, unknown>) =>
-      api<{ task: Task }>(`/api/v1/tasks/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+      offlineFirst(
+        { kind: "task", op: "update", id, payload: { ...input } },
+        () => api<{ task: Task }>(`/api/v1/tasks/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+        { task: { _id: id, ...input } as Task },
+        () => offlineCache.patchTaskInCache(id, input as Partial<Task>)
+      ),
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["projects"] });
@@ -108,14 +122,26 @@ export function useUpdateTask() {
 export function useToggleTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api(`/api/v1/tasks/${id}/complete`, { method: "PATCH", body: "{}" }),
+    mutationFn: (id: string) =>
+      offlineFirst(
+        { kind: "task", op: "toggle", id },
+        () => api(`/api/v1/tasks/${id}/complete`, { method: "PATCH", body: "{}" }),
+        {},
+        () => offlineCache.toggleTaskInCache(id)
+      ),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["tasks"] }); qc.invalidateQueries({ queryKey: ["projects"] }); },
   });
 }
 export function useDeleteTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api(`/api/v1/tasks/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) =>
+      offlineFirst(
+        { kind: "task", op: "delete", id },
+        () => api(`/api/v1/tasks/${id}`, { method: "DELETE" }),
+        {},
+        () => offlineCache.removeTaskFromCache(id)
+      ),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["tasks"] }); qc.invalidateQueries({ queryKey: ["projects"] }); },
   });
 }
@@ -123,7 +149,12 @@ export function useMoveTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status, position }: { id: string; status: string; position?: number }) =>
-      api(`/api/v1/tasks/${id}/move`, { method: "PATCH", body: JSON.stringify({ status, position }) }),
+      offlineFirst(
+        { kind: "task", op: "move", id, payload: { status, position } },
+        () => api(`/api/v1/tasks/${id}/move`, { method: "PATCH", body: JSON.stringify({ status, position }) }),
+        {},
+        () => offlineCache.patchTaskInCache(id, { status: status as Task["status"] })
+      ),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["tasks"] }); qc.invalidateQueries({ queryKey: ["projects"] }); },
   });
 }
