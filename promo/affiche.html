@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Focus — Affiche</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", Roboto, system-ui, sans-serif; background: #e8eaf3; display: flex; justify-content: center; padding: 32px 16px; }
+  .poster { width: 640px; max-width: 100%; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 30px 80px -30px rgba(16,16,60,.45); }
+  .hero { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 60%, #172554 100%); color: #fff; padding: 56px 48px 64px; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; width: 420px; height: 420px; border-radius: 50%; background: rgba(255,255,255,.08); right: -140px; top: -140px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; position: relative; z-index: 1; }
+  .brand b { font-size: 22px; letter-spacing: -.5px; }
+  .hero h1 { font-size: 44px; line-height: 1.1; letter-spacing: -1px; position: relative; z-index: 1; }
+  .hero p { margin-top: 14px; font-size: 16px; opacity: .85; max-width: 440px; position: relative; z-index: 1; }
+  .feats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; padding: 28px 32px; }
+  .feat { border: 1px solid #e7e5e4; border-radius: 16px; padding: 16px; }
+  .feat .ico { font-size: 24px; }
+  .feat h2 { font-size: 14px; margin: 8px 0 4px; }
+  .feat p { font-size: 12px; color: #78716c; line-height: 1.45; }
+  .plats { background: #f4f5fb; margin: 0 32px; border-radius: 16px; padding: 18px 20px; display: flex; gap: 12px; }
+  .plat { flex: 1; background: #fff; border: 1px solid #e7e5e4; border-radius: 12px; padding: 12px; text-align: center; font-size: 12px; font-weight: 700; }
+  .plat small { display: block; font-weight: 400; color: #78716c; margin-top: 3px; }
+  .foot { padding: 22px 32px 30px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #78716c; }
+  .foot b { color: #1c1917; }
+  @media print { body { background: #fff; padding: 0; } .poster { box-shadow: none; border-radius: 0; } @page { size: A4 portrait; margin: 0; } }
+  @media (max-width: 560px) { .feats { grid-template-columns: 1fr; } .hero h1 { font-size: 32px; } .plats { flex-direction: column; } }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="hero">
+    <div class="brand">
+      <svg width="44" height="44" viewBox="0 0 512 512"><rect x="16" y="16" width="480" height="480" rx="116" fill="#ffffff"/><rect x="126" y="110" width="74" height="292" rx="24" fill="#1d4ed8"/><rect x="126" y="110" width="238" height="74" rx="24" fill="#1d4ed8"/><rect x="126" y="230" width="180" height="66" rx="21" fill="#1d4ed8"/><circle cx="350" cy="350" r="78" fill="#1d4ed8"/><path d="M313 351 l27 27 l54 -62" stroke="#ffffff" stroke-width="36" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>Focus</b>
+    </div>
+    <h1>Votre productivité,<br />partout, tout le temps.</h1>
+    <p>Tâches, projets, fichiers, objectifs et concentration — pour les étudiants, les professionnels et les entrepreneurs. Une seule app, tous vos appareils, mêmes données synchronisées.</p>
+  </div>
+  <div class="feats">
+    <div class="feat"><div class="ico">✅</div><h2>Organiser</h2><p>Tâches, sous-tâches, Kanban, calendrier, priorités et échéances. Toujours savoir quoi faire aujourd'hui.</p></div>
+    <div class="feat"><div class="ico">📁</div><h2>Centraliser</h2><p>Documents, photos, scans PDF, corbeille, favoris et fichiers hors-ligne, liés aux tâches et projets.</p></div>
+    <div class="feat"><div class="ico">🎯</div><h2>Avancer</h2><p>Sessions Focus chronométrées, objectifs à progression automatique, rappels utiles — jamais de bruit.</p></div>
+  </div>
+  <div class="plats">
+    <div class="plat">🌐 Web &amp; PWA<small>Sans installation, hors-ligne partiel</small></div>
+    <div class="plat">🤖 Android<small>APK directe, mises à jour notifiées</small></div>
+    <div class="plat">🖥️ Windows<small>Installeur .exe à mise à jour silencieuse</small></div>
+  </div>
+  <div class="foot">
+    <span><b>focus.vercel.app</b> · github.com/DanielMb24/focus</span>
+    <span>Étudiants · Pros · Entrepreneurs</span>
+  </div>
+</div>
+</body>
+</html>

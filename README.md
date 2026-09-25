@@ -49,5 +49,10 @@ Frontend : Query = serveur, Zustand = UI (workspace actif, sidebar, quick-add, o
 ## Parcours MVP
 Register → Onboarding (prénom, profil, workspace) → Dashboard → + Nouvelle tâche (options : projet, objectif, tags, description) → Today/Tasks (filtres statut/projet/priorité/tag + recherche) → Projet + Board Kanban → Calendar → Goals (édition, progression auto) → Notes (édition) → Focus → Ctrl+K → installer PWA (menu navigateur).
 
+## Présentation (hors application)
+- `promo/parcours.html` — maquette du parcours utilisateur en 7 étapes (ouvrir dans un navigateur, imprimer en PDF si besoin).
+- `promo/affiche.html` — affiche de présentation du produit.
+- Ces fichiers ne sont **jamais embarqués** dans l'APK, l'exe ni le build web.
+
 ## Applis natives (`.exe` / `.apk`)
 Voir **`docs/PACKAGING.md`** : API configurable (`VITE_API_URL`), projet **Capacitor/Android** prêt (`client/android`, `npm run cap:sync`), scaffold **Tauri** prêt (`client/src-tauri`, `npx tauri build` sur votre PC avec Rust). La compilation et la signature se font sur votre machine (guide pas-à-pas dans le doc).
