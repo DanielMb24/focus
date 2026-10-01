@@ -52,6 +52,7 @@ const Notes = lazyWithRetry(() => import("../pages/Secondary").then((m) => ({ de
 const NoteEditor = lazyWithRetry(() => import("../pages/NoteEditor").then((m) => ({ default: m.NoteEditor })));
 const Focus = lazyWithRetry(() => import("../pages/Secondary").then((m) => ({ default: m.Focus })));
 const Settings = lazyWithRetry(() => import("../pages/Settings").then((m) => ({ default: m.Settings })));
+const Chat = lazyWithRetry(() => import("../pages/Chat").then((m) => ({ default: m.Chat })));
 
 function RequireAuth() {
   const loc = useLocation();
@@ -147,6 +148,7 @@ const router = createBrowserRouter([
           { path: "/notes", element: <Notes /> },
           { path: "/notes/:noteId", element: <NoteEditor /> },
           { path: "/focus", element: <Focus /> },
+          { path: "/chat", element: <Chat /> },
           { path: "/settings", element: <Settings /> },
             ],
           },

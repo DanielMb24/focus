@@ -8,6 +8,7 @@ import { Topbar } from "../components/layout/Shell";
 import { Card, Button, Skeleton, Badge } from "../components/ui/primitives";
 import { TaskEdit } from "../features/tasks/TaskEdit";
 import { AttachFiles } from "../features/files/AttachFiles";
+import { TaskNotes } from "../features/notes/TaskNotes";
 import { cn } from "../lib/cn";
 
 const STATUS_LABEL: Record<string, string> = { todo: "À faire", in_progress: "En cours", completed: "Terminée", cancelled: "Annulée" };
@@ -89,6 +90,9 @@ export function TaskDetail() {
           </Card>
           <Card>
             <AttachFiles entityType="task" entityId={task._id} />
+          </Card>
+          <Card>
+            <TaskNotes taskId={task._id} workspaceId={task.workspaceId} />
           </Card>
         </div>
 

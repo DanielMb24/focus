@@ -167,14 +167,15 @@ export function useGoals() {
     queryFn: () => api<{ data: Goal[] } | Goal[]>(`/api/v1/goals${activeWorkspaceId ? `?workspaceId=${activeWorkspaceId}` : ""}`).then((d) => (Array.isArray(d) ? d : ((d as unknown as { data: Goal[] }).data ?? []))),
   });
 }
-export function useNotes(search?: string, limit = 100) {
+export function useNotes(search?: string, limit = 100, taskId?: string) {
   const { activeWorkspaceId } = useWorkspace();
   return useQuery({
-    queryKey: ["notes", activeWorkspaceId, search ?? "", limit],
+    queryKey: ["notes", activeWorkspaceId, search ?? "", limit, taskId ?? ""],
     queryFn: () => {
       const p = new URLSearchParams();
       if (activeWorkspaceId) p.set("workspaceId", activeWorkspaceId);
       if (search) p.set("search", search);
+      if (taskId) p.set("taskId", taskId);
       p.set("limit", String(limit));
       return api<{ data: Note[] } | Note[]>(`/api/v1/notes?${p}`).then((d) => (Array.isArray(d) ? d : ((d as unknown as { data: Note[] }).data ?? [])));
     },

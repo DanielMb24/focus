@@ -1,8 +1,9 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
-import { LayoutDashboard, CalendarDays, CheckSquare, FolderKanban, Target, StickyNote, Timer, Settings, Plus, ChevronsLeft, ChevronsRight, Home, WifiOff, Bell, BellRing, Folder, Download, Check, LogOut, UserRound } from "lucide-react";
+import { LayoutDashboard, CalendarDays, CheckSquare, FolderKanban, Target, StickyNote, Timer, Settings, Plus, ChevronsLeft, ChevronsRight, Home, WifiOff, Bell, BellRing, Folder, Download, Check, LogOut, UserRound, MessageCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api, setAccessToken } from "../../lib/api";
+import { useConversations } from "../../lib/chat";
 import { useUI, useWorkspace } from "../../store/ui";
 import { useWorkspaces, useMe, useCreateWorkspace } from "../../lib/hooks";
 import { useNotifications } from "../../store/notifications";
@@ -23,6 +24,7 @@ const links = [
   { to: "/goals", label: "Objectifs", icon: Target },
   { to: "/focus", label: "Focus", icon: Timer },
   { to: "/notes", label: "Notes", icon: StickyNote },
+  { to: "/chat", label: "Messages", icon: MessageCircle },
 ];
 
 const wsColors = ["#1d4ed8", "#b45309", "#0e7490", "#be123c", "#6d28d9", "#047857"];
@@ -35,6 +37,9 @@ export function Sidebar() {
   const createWs = useCreateWorkspace();
   const { deferred, installed, install } = useInstallState();
   const nav = useNavigate();
+  // Poll lent côté sidebar : seul le badge total en dépend.
+  const { data: convos = [] } = useConversations(15000);
+  const totalUnread = convos.reduce((n, c) => n + (c.unread ?? 0), 0);
   return (
     <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#e3e7ee] bg-white py-5 md:flex dark:border-zinc-800 dark:bg-zinc-950", sidebarCollapsed ? "w-[76px] px-2.5" : "w-64 px-4")}>
       <div className="flex items-center justify-between px-1">
@@ -67,6 +72,9 @@ export function Sidebar() {
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} end={l.to === "/"} className={({ isActive }) => cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition", isActive ? "bg-[#eef3ff] font-semibold text-[#1d4ed8] dark:bg-zinc-800 dark:text-zinc-100" : "text-stone-600 hover:bg-stone-100 dark:text-zinc-400 dark:hover:bg-zinc-800", sidebarCollapsed && "justify-center !px-0")}>
             <l.icon size={17} /> {!sidebarCollapsed && l.label}
+            {l.to === "/chat" && totalUnread > 0 && (
+              <span className={cn("flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1d4ed8] px-1.5 text-[11px] font-bold text-white", !sidebarCollapsed && "ml-auto")}>{totalUnread}</span>
+            )}
           </NavLink>
         ))}
       </nav>

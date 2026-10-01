@@ -19,6 +19,8 @@ export function Calendar() {
   const monthStart = startOfMonth(cursor);
   const monthEnd = endOfMonth(cursor);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  // Décalage pour caler le 1er sous son vrai jour (semaine commençant lundi).
+  const leadBlanks = (monthStart.getDay() + 6) % 7;
   const from = monthStart.toISOString();
   const to = monthEnd.toISOString();
   const { data: tasks = [] } = useTasks({ dueFrom: from, dueTo: to });
@@ -58,6 +60,7 @@ export function Calendar() {
       <Card className="mt-4">
         <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-widest text-stone-400">{["L", "M", "M", "J", "V", "S", "D"].map((d, i) => <span key={i}>{d}</span>)}</div>
         <div className="mt-2 grid grid-cols-7 gap-1">
+          {Array.from({ length: leadBlanks }).map((_, i) => <span key={`blank-${i}`} aria-hidden />)}
           {days.map((d) => {
             const st = dayState(d);
             return (

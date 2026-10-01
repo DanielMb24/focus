@@ -23,6 +23,7 @@ const noteSchema = new Schema(
   {
     workspaceId: { type: Schema.Types.ObjectId, ref: "Workspace", required: true, index: true },
     projectId: { type: Schema.Types.ObjectId, ref: "Project" },
+    taskId: { type: Schema.Types.ObjectId, ref: "Task", index: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     title: { type: String, required: true, maxlength: 160 },
     content: { type: String, default: "" },

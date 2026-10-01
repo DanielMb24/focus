@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, X, FolderPlus, LayoutDashboard, CalendarDays, CheckSquare, FolderKanban,
-  Folder, Calendar, Target, StickyNote, Timer, Settings as SettingsIcon,
+  Folder, Calendar, Target, StickyNote, Timer, MessageCircle, Settings as SettingsIcon,
 } from "lucide-react";
 import { useUI, useWorkspace } from "../../store/ui";
 import { useCreateProject } from "../../lib/hooks";
@@ -49,6 +49,7 @@ export function SpeedDial() {
     { label: "Objectifs", icon: Target, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/goals") },
     { label: "Notes", icon: StickyNote, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/notes") },
     { label: "Focus", icon: Timer, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/focus") },
+    { label: "Messages", icon: MessageCircle, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/chat") },
     { label: "Réglages", icon: SettingsIcon, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/settings") },
   ];
 

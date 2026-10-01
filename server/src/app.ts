@@ -12,6 +12,7 @@ import { goalRouter, noteRouter, focusRouter } from "./modules/goals/misc.routes
 import { fileRouter } from "./modules/files/file.routes.js";
 import { folderRouter } from "./modules/files/folder.routes.js";
 import { searchRouter } from "./modules/search/search.routes.js";
+import { chatRouter } from "./modules/chat/chat.routes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
@@ -44,6 +45,7 @@ export function createApp() {
   v1.use("/files", fileRouter);
   v1.use("/folders", folderRouter);
   v1.use("/search", searchRouter);
+  v1.use("/chat", chatRouter);
   app.use("/api/v1", v1);
 
   app.use(notFoundHandler);

@@ -84,6 +84,7 @@ noteRouter.use(requireAuth, requireVerified);
 const noteCreate = z.object({
   workspaceId: z.string().min(1),
   projectId: z.string().optional().nullable(),
+  taskId: z.string().optional().nullable(),
   title: z.string().min(1).max(160),
   content: z.string().optional().default(""),
 });
@@ -93,6 +94,7 @@ noteRouter.get("/", async (req: AuthRequest, res: Response, next: NextFunction) 
     const filter: Record<string, unknown> = { createdBy: req.userId };
     if (q["workspaceId"]) { await requireWorkspaceAccess(req.userId as string, q["workspaceId"]); filter["workspaceId"] = q["workspaceId"]; }
     if (q["projectId"]) filter["projectId"] = q["projectId"];
+    if (q["taskId"]) filter["taskId"] = q["taskId"];
     if (q["search"]) filter["title"] = { $regex: q["search"], $options: "i" };
     const p = Math.max(1, Number(q["page"] ?? 1)), l = Math.min(100, Math.max(1, Number(q["limit"] ?? 20)));
     const total = await NoteModel.countDocuments(filter);
@@ -104,7 +106,7 @@ noteRouter.post("/", async (req: AuthRequest, res: Response, next: NextFunction)
   try {
     const input = noteCreate.parse(req.body);
     await requireWorkspaceAccess(req.userId as string, input.workspaceId);
-    const n = await NoteModel.create({ ...input, projectId: input.projectId || undefined, createdBy: req.userId });
+    const n = await NoteModel.create({ ...input, projectId: input.projectId || undefined, taskId: input.taskId || undefined, createdBy: req.userId });
     res.status(201).json(ok({ note: n }));
   } catch (e) { next(e); }
 });

@@ -28,5 +28,9 @@ export interface Task {
   createdAt: string; updatedAt: string;
 }
 export interface Goal { _id: string; workspaceId: string; title: string; description?: string; targetDate?: string; progress: number; status: string; totalTasks?: number; completedTasks?: number; }
-export interface Note { _id: string; workspaceId: string; projectId?: string; title: string; content?: string; updatedAt: string; }
+export interface Note { _id: string; workspaceId: string; projectId?: string; taskId?: string | null; title: string; content?: string; updatedAt: string; }
 export interface FocusSession { _id: string; taskId?: string; startedAt: string; endedAt?: string; durationSec: number; plannedSec: number; completed: boolean; }
+export interface ChatMember { userId: string; firstName: string; lastName: string; lastReadAt: string }
+export interface Conversation { _id: string; workspaceId: string; type: "direct" | "group"; name?: string; members: ChatMember[]; lastMessageAt: string; lastMessage: { text: string; senderId: string; createdAt: string } | null; unread: number }
+export interface ChatMessage { _id: string; conversationId: string; senderId: string; text: string; createdAt: string }
+export interface WorkspaceMember { userId: string; role: string; firstName: string; lastName: string; email: string }
