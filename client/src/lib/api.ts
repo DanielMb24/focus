@@ -13,15 +13,28 @@ export function setAccessToken(t: string | null) {
 }
 export function getAccessToken() { return accessToken; }
 
-async function refreshAccess(): Promise<string | null> {
-  try {
-    const r = await fetch(`${BASE}/api/v1/auth/refresh`, { method: "POST", credentials: "include" });
-    if (!r.ok) return null;
-    const j = await r.json();
-    const t = j?.data?.accessToken as string | undefined;
-    if (t) { setAccessToken(t); return t; }
-    return null;
-  } catch { return null; }
+/** Refresh à vol unique : les 401 simultanés partagent le même POST /refresh
+ *  au lieu de se marcher dessus (rotation = un seul gagnant, les autres 401). */
+let refreshPromise: Promise<string | null> | null = null;
+
+function refreshAccess(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const r = await fetch(`${BASE}/api/v1/auth/refresh`, { method: "POST", credentials: "include" });
+        if (!r.ok) return null;
+        const j = await r.json();
+        const t = j?.data?.accessToken as string | undefined;
+        if (t) { setAccessToken(t); return t; }
+        return null;
+      } catch {
+        return null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+  return refreshPromise;
 }
 
 export class ApiError extends Error {

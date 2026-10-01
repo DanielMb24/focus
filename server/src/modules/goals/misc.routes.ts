@@ -108,6 +108,14 @@ noteRouter.post("/", async (req: AuthRequest, res: Response, next: NextFunction)
     res.status(201).json(ok({ note: n }));
   } catch (e) { next(e); }
 });
+noteRouter.get("/:id", async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const n = await NoteModel.findById(req.params.id).lean();
+    if (!n) throw notFound("Note not found");
+    if (String(n.createdBy) !== req.userId) throw forbidden("No access");
+    res.json(ok({ note: n }));
+  } catch (e) { next(e); }
+});
 noteRouter.patch("/:id", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const n = await NoteModel.findById(req.params.id);

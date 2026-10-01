@@ -243,13 +243,13 @@ export function Files() {
           {/* Barre d'outils */}
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <div className="relative min-w-40 flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -transtone-y-1/2 text-stone-400" />
-              <input aria-label="Rechercher dans mes fichiers" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher nom, extension…" className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-9 pr-3 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900" />
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+              <input aria-label="Rechercher dans mes fichiers" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher nom, extension…" className="field-control field-sm w-full !pl-9" />
             </div>
-            <select aria-label="Filtrer par type" value={type} onChange={(e) => setType(e.target.value)} className="rounded-lg border border-stone-200 bg-white px-2 py-2 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900">
+            <select aria-label="Filtrer par type" value={type} onChange={(e) => setType(e.target.value)} className="field-control field-sm w-auto">
               <option value="">Tous types</option><option value="document">Documents</option><option value="image">Images</option><option value="video">Vidéos</option><option value="audio">Audio</option><option value="archive">Archives</option>
             </select>
-            <select aria-label="Trier" value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-stone-200 bg-white px-2 py-2 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900">
+            <select aria-label="Trier" value={sort} onChange={(e) => setSort(e.target.value)} className="field-control field-sm w-auto">
               <option value="newest">Récents</option><option value="oldest">Anciens</option><option value="name">Nom</option><option value="size">Taille</option><option value="type">Type</option>
             </select>
             <button aria-label={layout === "grid" ? "Vue liste" : "Vue grille"} onClick={() => setLayout(layout === "grid" ? "list" : "grid")} className="rounded-lg border border-stone-200 bg-white p-2 transition hover:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900">

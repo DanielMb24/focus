@@ -134,9 +134,41 @@ input[type="checkbox"].field-check, input[type="radio"].field-check { accent-col
 }
 .dark input[type="date"].field-control { color-scheme: dark; }
 
-/* ---- liens nav ---- */
-.nav-link { transition: background-color 0.15s ease, color 0.15s ease; }
-.nav-link.active { box-shadow: inset 2px 0 0 var(--accent); }
+/* ---- éditeur de notes (TipTap) ---- */
+.tiptap-doc { min-height: 46vh; outline: none; font-size: 15px; line-height: 1.65; }
+.tiptap-doc > *:first-child { margin-top: 0; }
+.tiptap-doc p { margin: 0.55em 0; }
+.tiptap-doc h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.015em; margin: 1em 0 0.4em; }
+.tiptap-doc h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; margin: 0.9em 0 0.35em; }
+.tiptap-doc h3 { font-size: 17px; font-weight: 700; margin: 0.9em 0 0.3em; }
+.tiptap-doc ul:not(.task-list), .tiptap-doc ol { padding-left: 1.5em; margin: 0.55em 0; }
+.tiptap-doc ul:not(.task-list) { list-style: disc; }
+.tiptap-doc ol { list-style: decimal; }
+.tiptap-doc li > p { margin: 0.2em 0; }
+.tiptap-doc ul.task-list { list-style: none; padding-left: 0; margin: 0.55em 0; }
+.tiptap-doc li[data-type="taskItem"] { display: flex; align-items: flex-start; gap: 0.6em; margin: 0.3em 0; }
+.tiptap-doc li[data-type="taskItem"] > label { display: flex; padding-top: 0.25em; }
+.tiptap-doc li[data-type="taskItem"] input[type="checkbox"] { width: 1.05em; height: 1.05em; accent-color: #1d4ed8; cursor: pointer; }
+.tiptap-doc li[data-type="taskItem"] > div { flex: 1; min-width: 0; }
+.tiptap-doc li[data-type="taskItem"][data-checked="true"] > div { color: #9aa1ad; text-decoration: line-through; }
+.tiptap-doc blockquote { border-left: 3px solid #1d4ed8; margin: 0.8em 0; padding: 0.15em 0 0.15em 1em; color: #3d4451; font-style: italic; }
+.tiptap-doc pre { background: #14181f; color: #e8eaf0; border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.55; overflow-x: auto; margin: 0.8em 0; }
+.tiptap-doc pre code { background: none; padding: 0; color: inherit; }
+.tiptap-doc code { font-family: Consolas, monospace; font-size: 0.88em; background: #f2f4f8; border-radius: 6px; padding: 0.1em 0.35em; }
+.dark .tiptap-doc code { background: #27272a; }
+.tiptap-doc a { color: #1d4ed8; text-decoration: underline; text-underline-offset: 2px; }
+.tiptap-doc mark { background: #fef08a; border-radius: 3px; padding: 0 0.15em; }
+.tiptap-doc hr { border: none; border-top: 1px solid #e3e7ee; margin: 1.2em 0; }
+.tiptap-doc img { max-width: 100%; border-radius: 12px; height: auto; }
+.tiptap-doc table { border-collapse: collapse; width: 100%; margin: 0.8em 0; table-layout: fixed; }
+.tiptap-doc th, .tiptap-doc td { border: 1px solid #d4d9e2; padding: 8px 12px; vertical-align: top; }
+.tiptap-doc th { background: #f2f4f8; font-weight: 700; text-align: left; }
+.tiptap-doc .tableWrapper { overflow-x: auto; }
+.tiptap-doc p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #9aa1ad; float: left; height: 0; pointer-events: none; }
+.tiptap-doc:focus { outline: none; }
+.tiptap-doc ::selection { background: rgba(29, 78, 216, 0.18); }
+
+/* ---- liens nav (l'état actif est porté par les classes du composant) ---- */
 
 /* ---- tâche ---- */
 .task-check { transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease; }

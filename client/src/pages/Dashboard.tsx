@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { format } from "date-fns";
+import { addDays, format, isSameDay, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useMe, useTasks, useProjects, useCreateTask } from "../lib/hooks";
+import { useMe, useTasks, useProjects, useCreateTask, useGoals, useFocusSessions } from "../lib/hooks";
 import { useRecentFiles } from "../lib/files";
 import { Topbar } from "../components/layout/Shell";
 import { Card, EmptyState, Skeleton, Button } from "../components/ui/primitives";
@@ -66,6 +66,21 @@ export function Dashboard() {
   const urgent = useMemo(() => tasks.filter((t) => (t.priority === "urgent" || t.priority === "high") && t.status !== "completed").slice(0, 4), [tasks]);
   const pname = (id?: string) => projects.find((p) => p._id === id)?.name;
 
+  const week = useMemo(() => {
+    const base = startOfDay(new Date());
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = addDays(base, i);
+      const count = tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), d) && t.status !== "completed" && t.status !== "cancelled").length;
+      return { date: d, count };
+    });
+  }, [tasks]);
+  const weekTotal = week.reduce((n, d) => n + d.count, 0);
+
+  const { data: focus } = useFocusSessions();
+  const focusMin = Math.round((focus?.todayStats.totalSec ?? 0) / 60);
+  const { data: goals = [] } = useGoals();
+  const activeGoals = useMemo(() => goals.filter((g) => g.status === "active").slice(0, 3), [goals]);
+
   return (
     <div>
       <Topbar title={`Bonjour ${me?.firstName ?? ""}`} subtitle={format(new Date(), "EEEE d MMMM", { locale: fr })} />
@@ -88,7 +103,8 @@ export function Dashboard() {
         </dl>
       </section>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-2 [&>*]:min-w-0">
+      <div className="mt-8 grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-2 [&>*]:min-w-0">
         {showSuggestions && (
           <section aria-label="Suggestions" className="lg:col-span-2">
             <p className="kicker">Suggestion</p>
@@ -154,6 +170,70 @@ export function Dashboard() {
             </section>
           )}
         </div>
+        </div>
+        <aside className="hidden min-w-0 xl:block" aria-label="Colonne latérale">
+          <div className="sticky top-6 space-y-6">
+            <section aria-label="Semaine à venir">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="kicker">Semaine</p>
+                <Link to="/calendar" className="text-xs font-medium text-stone-500 hover:text-stone-900">Calendrier →</Link>
+              </div>
+              <div className="mt-2 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+                {stats.overdue > 0 && (
+                  <Link to="/today" className="flex items-center gap-3 px-3.5 py-2.5 transition hover:bg-stone-50 dark:hover:bg-zinc-800/60">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-sm font-bold text-red-700 dark:bg-red-950 dark:text-red-300">!</span>
+                    <span className="flex-1 text-sm font-medium">En retard</span>
+                    <span className="text-sm font-bold tabular-nums text-red-700">{stats.overdue}</span>
+                  </Link>
+                )}
+                {week.map(({ date, count }, i) => (
+                  <Link key={date.toISOString()} to="/calendar" className="flex items-center gap-3 px-3.5 py-2.5 transition hover:bg-stone-50 dark:hover:bg-zinc-800/60">
+                    <span className="flex h-9 w-9 flex-col items-center justify-center rounded-lg bg-stone-100 leading-none dark:bg-zinc-800">
+                      <span className="text-[13px] font-bold tabular-nums">{format(date, "d")}</span>
+                      <span className="text-[9px] font-semibold uppercase text-stone-400">{format(date, "EEEEE", { locale: fr })}</span>
+                    </span>
+                    <span className="flex-1 truncate text-sm text-stone-600 dark:text-zinc-300">
+                      {i === 0 ? "Aujourd'hui" : i === 1 ? "Demain" : format(date, "EEEE d MMM", { locale: fr })}
+                    </span>
+                    <span className={count > 0 ? "text-sm font-bold tabular-nums" : "text-sm tabular-nums text-stone-300"}>{count > 0 ? count : "—"}</span>
+                  </Link>
+                ))}
+              </div>
+              <p className="mt-2 px-1 font-mono text-[11px] uppercase tracking-wide text-stone-400">{weekTotal} tâche{weekTotal > 1 ? "s" : ""} ces 7 jours</p>
+            </section>
+            <section aria-label="Focus du jour">
+              <p className="kicker">Focus</p>
+              <Card className="mt-2">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[28px] font-bold tabular-nums leading-none tracking-tight">{focusMin}</span>
+                  <span className="text-sm text-stone-500">min aujourd'hui</span>
+                </div>
+                <p className="mt-1 text-xs text-stone-500">{focus?.todayStats.count ?? 0} session{(focus?.todayStats.count ?? 0) > 1 ? "s" : ""} · <Link to="/focus" className="font-medium text-blue-700 hover:underline">ouvrir le minuteur →</Link></p>
+              </Card>
+            </section>
+            {activeGoals.length > 0 && (
+              <section aria-label="Objectifs en cours">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="kicker">Objectifs</p>
+                  <Link to="/goals" className="text-xs font-medium text-stone-500 hover:text-stone-900">Tout voir →</Link>
+                </div>
+                <div className="mt-2 space-y-2.5">
+                  {activeGoals.map((g) => (
+                    <Card key={g._id}>
+                      <div className="flex items-baseline justify-between gap-2 text-sm">
+                        <span className="truncate font-semibold">{g.title}</span>
+                        <span className="font-bold tabular-nums">{g.progress}%</span>
+                      </div>
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-stone-200 dark:bg-zinc-800">
+                        <div className="progress-fill h-1 rounded-full" style={{ ["--w" as string]: `${g.progress}%`, width: `${g.progress}%` }} />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        </aside>
       </div>
     </div>
   );

@@ -49,6 +49,7 @@ const FileDetail = lazyWithRetry(() => import("../pages/FileDetail").then((m) =>
 const ShareTarget = lazyWithRetry(() => import("../pages/ShareTarget").then((m) => ({ default: m.ShareTarget })));
 const Goals = lazyWithRetry(() => import("../pages/Secondary").then((m) => ({ default: m.Goals })));
 const Notes = lazyWithRetry(() => import("../pages/Secondary").then((m) => ({ default: m.Notes })));
+const NoteEditor = lazyWithRetry(() => import("../pages/NoteEditor").then((m) => ({ default: m.NoteEditor })));
 const Focus = lazyWithRetry(() => import("../pages/Secondary").then((m) => ({ default: m.Focus })));
 const Settings = lazyWithRetry(() => import("../pages/Settings").then((m) => ({ default: m.Settings })));
 
@@ -92,7 +93,7 @@ function AppShell() {
   return (
     <div className="flex h-full">
       <Sidebar />
-      <main className="mx-auto w-full max-w-6xl flex-1 overflow-y-auto px-4 pb-28 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 md:pb-10 md:pt-6">
+      <main className="w-full max-w-[1440px] flex-1 overflow-y-auto px-4 pb-28 pt-[max(1rem,env(safe-area-inset-top))] sm:px-8 md:pb-10 md:pt-6">
         {apiDown && (
           <div role="alert" className="animate-pop mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
             <span>Serveur injoignable — vérifiez votre connexion, l'URL de l'API et la configuration CORS.</span>
@@ -144,6 +145,7 @@ const router = createBrowserRouter([
           { path: "/calendar", element: <Calendar /> },
           { path: "/goals", element: <Goals /> },
           { path: "/notes", element: <Notes /> },
+          { path: "/notes/:noteId", element: <NoteEditor /> },
           { path: "/focus", element: <Focus /> },
           { path: "/settings", element: <Settings /> },
             ],

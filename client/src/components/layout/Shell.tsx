@@ -36,46 +36,46 @@ export function Sidebar() {
   const { deferred, installed, install } = useInstallState();
   const nav = useNavigate();
   return (
-    <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col bg-[#0d1322] py-4 text-zinc-300 md:flex dark:border-r dark:border-zinc-800", sidebarCollapsed ? "w-[76px] px-2.5" : "w-64 px-4")}>
+    <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#e3e7ee] bg-white py-5 md:flex dark:border-zinc-800 dark:bg-zinc-950", sidebarCollapsed ? "w-[76px] px-2.5" : "w-64 px-4")}>
       <div className="flex items-center justify-between px-1">
         <button onClick={() => nav("/")} className="flex items-center gap-2.5" aria-label="Aller au dashboard">
           <Logo size={32} />
           {!sidebarCollapsed && (
             <span className="leading-none">
-              <span className="block text-[19px] font-bold tracking-tight text-white">Focus</span>
-              <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">Espace de travail</span>
+              <span className="block text-[19px] font-bold tracking-tight text-stone-900 dark:text-white">Focus</span>
+              <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">Espace de travail</span>
             </span>
           )}
         </button>
         {!sidebarCollapsed && (
-          <button aria-label="Réduire la sidebar" onClick={toggleSidebar} className="rounded-md p-1.5 text-zinc-500 hover:bg-white/10 hover:text-white"><ChevronsLeft size={17} /></button>
+          <button aria-label="Réduire la sidebar" onClick={toggleSidebar} className="rounded-md p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:text-zinc-500 dark:hover:bg-zinc-800"><ChevronsLeft size={17} /></button>
         )}
       </div>
-      {sidebarCollapsed && <button aria-label="Étendre la sidebar" onClick={toggleSidebar} className="mx-auto mt-2 rounded-md p-1.5 text-zinc-500 hover:bg-white/10 hover:text-white"><ChevronsRight size={17} /></button>}
+      {sidebarCollapsed && <button aria-label="Étendre la sidebar" onClick={toggleSidebar} className="mx-auto mt-2 rounded-md p-1.5 text-stone-400 hover:bg-stone-100 dark:text-zinc-500 dark:hover:bg-zinc-800"><ChevronsRight size={17} /></button>}
 
-      <button onClick={() => setQuickAdd(true)} className={cn("btn-press mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2f6bff] px-3 py-2.5 text-sm font-semibold text-white hover:bg-[#1d4ed8]", sidebarCollapsed && "mx-auto h-10 w-10 !px-0")}>
+      <button onClick={() => setQuickAdd(true)} className={cn("btn-press mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4ed8] px-3 py-2.5 text-sm font-semibold text-white hover:bg-[#1e40af]", sidebarCollapsed && "mx-auto h-10 w-10 !px-0")}>
         <Plus size={17} /> {!sidebarCollapsed && "Nouvelle tâche"}
       </button>
       {!installed && deferred && (
         <button onClick={() => void install()} title="Installer Focus comme application de bureau"
-          className={cn("btn-press mt-2 inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-3 py-2.5 text-sm font-medium text-zinc-200 hover:border-white/40 hover:text-white", sidebarCollapsed && "mx-auto h-10 w-10 !px-0")}>
+          className={cn("btn-press mt-2 inline-flex items-center justify-center gap-2 rounded-xl border border-stone-300 px-3 py-2.5 text-sm font-medium text-stone-600 hover:border-stone-400 hover:text-stone-900 dark:border-zinc-700 dark:text-zinc-300", sidebarCollapsed && "mx-auto h-10 w-10 !px-0")}>
           <Download size={16} /> {!sidebarCollapsed && "Télécharger l'app"}
         </button>
       )}
 
       <nav className="mt-5 flex-1 space-y-0.5 overflow-y-auto" aria-label="Navigation principale">
         {links.map((l) => (
-          <NavLink key={l.to} to={l.to} end={l.to === "/"} className={({ isActive }) => cn("nav-link flex items-center gap-3 rounded-lg px-3 py-2 text-sm", isActive ? "active bg-white/10 font-semibold text-white" : "text-zinc-400 hover:bg-white/5 hover:text-white", sidebarCollapsed && "justify-center !px-0")}>
+          <NavLink key={l.to} to={l.to} end={l.to === "/"} className={({ isActive }) => cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition", isActive ? "bg-[#eef3ff] font-semibold text-[#1d4ed8] dark:bg-zinc-800 dark:text-zinc-100" : "text-stone-600 hover:bg-stone-100 dark:text-zinc-400 dark:hover:bg-zinc-800", sidebarCollapsed && "justify-center !px-0")}>
             <l.icon size={17} /> {!sidebarCollapsed && l.label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="mt-2 border-t border-white/10 pt-3">
-        {!sidebarCollapsed && <p className="mb-1.5 px-2 text-[11px] font-bold uppercase tracking-widest text-zinc-500">Espaces</p>}
+      <div className="mt-2 border-t border-[#e3e7ee] pt-3 dark:border-zinc-800">
+        {!sidebarCollapsed && <p className="mb-1.5 px-2 text-[11px] font-bold uppercase tracking-widest text-stone-400">Espaces</p>}
         <div className="space-y-0.5">
           {workspaces.map((w, i) => (
-            <button key={w._id} title={w.name} onClick={() => setActive(w._id)} className={cn("flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm transition", activeWorkspaceId === w._id ? "bg-white/10 font-semibold text-white" : "text-zinc-400 hover:bg-white/5 hover:text-white")}>
+            <button key={w._id} title={w.name} onClick={() => setActive(w._id)} className={cn("flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm transition", activeWorkspaceId === w._id ? "bg-stone-100 font-semibold text-stone-900 dark:bg-zinc-800 dark:text-white" : "text-stone-600 hover:bg-stone-50 dark:text-zinc-400 dark:hover:bg-zinc-800")}>
               <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: wsColors[i % wsColors.length] }} />
               {!sidebarCollapsed && <span className="truncate">{w.name}</span>}
             </button>
@@ -90,16 +90,16 @@ export function Sidebar() {
                 const d = (await createWs.mutateAsync({ name: name.trim(), type: "personal" })) as unknown as { workspace: { _id: string } };
                 setActive(d.workspace._id);
               }}
-              className="mt-1.5 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-[#8fb0ff] transition hover:bg-white/5 hover:text-white"
+              className="mt-1.5 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-zinc-800"
             >
               <Plus size={15} /> Nouvel espace
             </button>
-            <button onClick={() => nav("/settings")} className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white">
+            <button onClick={() => nav("/settings")} className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 dark:text-zinc-400 dark:hover:bg-zinc-800">
               <Settings size={15} /> Paramètres
             </button>
           </>
         )}
-        {!sidebarCollapsed && me && <p className="mt-1.5 truncate px-2.5 text-xs text-zinc-500">{me.firstName} · {me.email}</p>}
+        {!sidebarCollapsed && me && <p className="mt-1.5 truncate px-2.5 text-xs text-stone-400">{me.firstName} · {me.email}</p>}
       </div>
     </aside>
   );

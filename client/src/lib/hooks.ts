@@ -167,16 +167,42 @@ export function useGoals() {
     queryFn: () => api<{ data: Goal[] } | Goal[]>(`/api/v1/goals${activeWorkspaceId ? `?workspaceId=${activeWorkspaceId}` : ""}`).then((d) => (Array.isArray(d) ? d : ((d as unknown as { data: Goal[] }).data ?? []))),
   });
 }
-export function useNotes(search?: string) {
+export function useNotes(search?: string, limit = 100) {
   const { activeWorkspaceId } = useWorkspace();
   return useQuery({
-    queryKey: ["notes", activeWorkspaceId, search ?? ""],
+    queryKey: ["notes", activeWorkspaceId, search ?? "", limit],
     queryFn: () => {
       const p = new URLSearchParams();
       if (activeWorkspaceId) p.set("workspaceId", activeWorkspaceId);
       if (search) p.set("search", search);
+      p.set("limit", String(limit));
       return api<{ data: Note[] } | Note[]>(`/api/v1/notes?${p}`).then((d) => (Array.isArray(d) ? d : ((d as unknown as { data: Note[] }).data ?? [])));
     },
+  });
+}
+export function useNote(id?: string) {
+  return useQuery({
+    queryKey: ["note", id],
+    queryFn: () => api<{ note: Note }>(`/api/v1/notes/${id}`).then((d) => d.note),
+    enabled: !!id,
+  });
+}
+export function useUpdateNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: { id: string } & Record<string, unknown>) =>
+      api(`/api/v1/notes/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["notes"] });
+      qc.invalidateQueries({ queryKey: ["note", v.id] });
+    },
+  });
+}
+export function useDeleteNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api(`/api/v1/notes/${id}`, { method: "DELETE" }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notes"] }),
   });
 }
 export function useFocusSessions() {

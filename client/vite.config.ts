@@ -41,4 +41,7 @@ export default defineConfig({
     }),
   ],
   server: { port: 5173, proxy: { "/api": "http://localhost:4000" } },
+  // Une seule instance de React : le workspace a deux copies physiques
+  // (racine + client/) qui cassaient les hooks en dev.
+  resolve: { dedupe: ["react", "react-dom"] },
 });

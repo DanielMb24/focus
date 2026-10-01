@@ -62,7 +62,7 @@ export function VerifyEmail() {
         <label className="block text-sm font-medium">Code
           <input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" placeholder="123456" autoFocus
             onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
-            className={`${inputCls} text-center text-2xl font-black tracking-[0.5em]`} />
+            className={`${inputCls} !h-16 text-center !text-2xl font-black tracking-[0.5em]`} />
         </label>
         {err && <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{err}</p>}
         {info && <p role="status" className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">{info}</p>}

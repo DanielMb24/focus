@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { Copy, FileDown, FilePlus2, FileText, Printer, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import { useGoals, useNotes, useFocusSessions, useTasks } from "../lib/hooks";
 import { useWorkspace } from "../store/ui";
@@ -7,9 +9,12 @@ import { Topbar } from "../components/layout/Shell";
 import { Card, EmptyState, Button, Skeleton } from "../components/ui/primitives";
 import { offlineFirst, prependNoteToCache } from "../lib/offline";
 import { GoalEdit } from "../features/goals/GoalEdit";
-import { AttachFiles } from "../features/files/AttachFiles";
 import { notify } from "../lib/notify";
 import { cn } from "../lib/cn";
+import { docToHtml, docToMarkdown, docToText, downloadBlob, parseNoteContent, slugFilename } from "../lib/noteDoc";
+import { exportNoteDocx, printNote } from "../lib/noteExport";
+import { noteStats } from "../lib/noteAssist";
+import type { Note } from "../types";
 
 const inputCls = "field-control field-sm";
 const miniBtn = "shrink-0 rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600 transition hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700";
@@ -61,9 +66,11 @@ export function Notes() {
   const { data: notes = [], isLoading } = useNotes(search || undefined);
   const { activeWorkspaceId } = useWorkspace();
   const qc = useQueryClient();
+  const nav = useNavigate();
   const [title, setTitle] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
+  const [menuId, setMenuId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
   const create = useMutation({
     mutationFn: async (t: string) => {
       const payload = { workspaceId: activeWorkspaceId, title: t, content: "" };
@@ -77,59 +84,106 @@ export function Notes() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notes"] }),
   });
-  const save = useMutation({
-    mutationFn: ({ id, content }: { id: string; content: string }) =>
-      api(`/api/v1/notes/${id}`, { method: "PATCH", body: JSON.stringify({ title: notes.find((n) => n._id === id)?.title ?? "", content }) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["notes"] }); setEditingId(null); },
-  });
   const del = useMutation({
     mutationFn: (id: string) => api(`/api/v1/notes/${id}`, { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notes"] }),
   });
+
+  async function newDocument() {
+    setErr("");
+    if (!activeWorkspaceId) { setErr("Aucun espace actif."); return; }
+    setBusy(true);
+    try {
+      const d = await api<{ note: Note }>("/api/v1/notes", {
+        method: "POST",
+        body: JSON.stringify({ workspaceId: activeWorkspaceId, title: title.trim() || "Sans titre", content: "" }),
+      });
+      qc.invalidateQueries({ queryKey: ["notes"] });
+      nav(`/notes/${d.note._id}`);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Création impossible hors-ligne — utilisez la capture rapide ci-dessus.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function duplicate(n: Note) {
+    setMenuId(null);
+    try {
+      const d = await api<{ note: Note }>("/api/v1/notes", {
+        method: "POST",
+        body: JSON.stringify({ workspaceId: n.workspaceId, title: `${n.title} (copie)`, content: n.content ?? "" }),
+      });
+      qc.invalidateQueries({ queryKey: ["notes"] });
+      nav(`/notes/${d.note._id}`);
+    } catch { /* erreur réseau */ }
+  }
+
+  async function exportCard(n: Note, kind: "docx" | "pdf" | "md") {
+    setMenuId(null);
+    const doc = parseNoteContent(n.content);
+    if (kind === "docx") await exportNoteDocx(n.title, doc, slugFilename(n.title, "docx"));
+    else if (kind === "md") downloadBlob(new Blob([`# ${n.title}\n\n${docToMarkdown(doc)}\n`], { type: "text/markdown" }), slugFilename(n.title, "md"));
+    else printNote(n.title, docToHtml(doc), `Exporté de Focus le ${new Date().toLocaleDateString("fr-FR")}`);
+  }
+
   return (
-    <div className="pb-24 md:pb-8"><Topbar title="Notes" subtitle={`${notes.length} note${notes.length > 1 ? "s" : ""} · capturez vos idées`} />
+    <div className="pb-24 md:pb-8"><Topbar title="Notes" subtitle={`${notes.length} note${notes.length > 1 ? "s" : ""} · documents & idées`} />
       <Card>
         <form
           onSubmit={(e) => { e.preventDefault(); if (title.trim()) { create.mutate(title.trim()); setTitle(""); } }}
           className="flex gap-2"
         >
-          <input aria-label="Nouvelle note" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Écrivez une idée, un compte-rendu…" className="field-control w-full text-[15px]" />
+          <input aria-label="Nouvelle note" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Capture rapide : écrivez une idée…" className="field-control w-full text-[15px]" />
           <Button type="submit" disabled={!activeWorkspaceId || !title.trim()} className="h-11 shrink-0 !rounded-xl !px-5">Ajouter</Button>
         </form>
-        <div className="relative mt-2.5">
-          <input aria-label="Rechercher notes" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher dans vos notes…" className="field-control field-sm mt-2.5 w-full" />
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <input aria-label="Rechercher notes" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher dans vos notes…" className="field-control field-sm min-w-40 flex-1" />
+          <Button variant="outline" onClick={() => void newDocument()} disabled={busy || !activeWorkspaceId} className="!py-2 text-sm">
+            <FilePlus2 size={15} /> Nouveau document
+          </Button>
         </div>
+        {err && <p role="alert" className="mt-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700">{err}</p>}
       </Card>
       <section aria-label="Liste des notes">
         <div className="mt-5 flex items-baseline justify-between">
-          <p className="kicker">01 — Liste</p>
+          <p className="kicker">01 — Documents</p>
           {notes.length > 0 && <p className="font-mono text-[11px] uppercase tracking-wide text-stone-400">{notes.length} note{notes.length > 1 ? "s" : ""}</p>}
         </div>
-        <div className="mt-2 grid gap-3 md:grid-cols-2">{isLoading ? <Skeleton className="h-24" /> : notes.map((n) => (
-          <Card key={n._id} className="card-lift">
-            <div className="flex items-center justify-between gap-2">
-              <p className="min-w-0 flex-1 truncate text-[16px] font-bold tracking-tight">{n.title}</p>
-              <div className="flex shrink-0 gap-1">
-                <button aria-label="Modifier la note" onClick={() => { setEditingId(n._id); setDraft(n.content ?? ""); }} className={miniBtn}>Modifier</button>
-                <button aria-label="Supprimer note" onClick={() => del.mutate(n._id)} className="rounded-full px-2 py-1 text-xs text-stone-400 transition hover:bg-stone-100 hover:text-stone-900 dark:text-zinc-500 dark:hover:text-zinc-100">✕</button>
-              </div>
-            </div>
-            {editingId === n._id ? (
-              <div className="mt-2">
-                <textarea aria-label="Contenu de la note" value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} placeholder="Écrivez ici…" className={cn(inputCls, "w-full")} />
-                <div className="mt-2 flex justify-end gap-2">
-                  <Button variant="ghost" onClick={() => setEditingId(null)}>Annuler</Button>
-                  <Button onClick={() => save.mutate({ id: n._id, content: draft })} disabled={save.isPending}>{save.isPending ? "Enregistrement…" : "Enregistrer"}</Button>
+        <div className="mt-2 grid gap-3 md:grid-cols-2">{isLoading ? <Skeleton className="h-28" /> : notes.map((n) => {
+          const preview = docToText(parseNoteContent(n.content)).slice(0, 160);
+          const words = noteStats(docToText(parseNoteContent(n.content))).words;
+          return (
+            <Card key={n._id} className="card-lift group">
+              <button onClick={() => nav(`/notes/${n._id}`)} className="block w-full text-left" title="Ouvrir dans l'éditeur">
+                <p className="truncate text-[16px] font-bold tracking-tight">{n.title}</p>
+                <p className="mt-1 line-clamp-2 min-h-10 text-sm text-stone-500 dark:text-zinc-300">{preview || "Document vide — cliquez pour écrire."}</p>
+                <p className="mt-2 font-mono text-[11px] uppercase tracking-wide text-stone-400">
+                  {new Date(n.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {words} mots
+                </p>
+              </button>
+              <div className="mt-3 flex items-center gap-1.5 border-t border-stone-100 pt-2.5 dark:border-zinc-800">
+                <button onClick={() => nav(`/notes/${n._id}`)} className="rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-stone-700 dark:bg-white dark:text-zinc-900">Ouvrir</button>
+                <div className="relative ml-auto">
+                  <button aria-label={`Actions pour ${n.title}`} aria-expanded={menuId === n._id} onClick={() => setMenuId(menuId === n._id ? null : n._id)}
+                    className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-stone-400 transition hover:bg-stone-100 hover:text-stone-900">⋯</button>
+                  {menuId === n._id && (
+                    <div role="menu" className="animate-pop absolute bottom-full right-0 z-30 mb-1.5 w-52 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
+                      <button role="menuitem" onClick={() => void duplicate(n)} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><Copy size={14} className="text-stone-400" /> Dupliquer</button>
+                      <button role="menuitem" onClick={() => void exportCard(n, "docx")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><FileDown size={14} className="text-stone-400" /> Exporter Word</button>
+                      <button role="menuitem" onClick={() => void exportCard(n, "pdf")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><Printer size={14} className="text-stone-400" /> Exporter PDF</button>
+                      <button role="menuitem" onClick={() => void exportCard(n, "md")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><FileText size={14} className="text-stone-400" /> Exporter Markdown</button>
+                      <button role="menuitem" onClick={() => { setMenuId(null); if (window.confirm(`Supprimer « ${n.title} » ?`)) del.mutate(n._id); }} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm text-red-700 transition hover:bg-red-50"><Trash2 size={14} /> Supprimer</button>
+                    </div>
+                  )}
                 </div>
-                <AttachFiles entityType="note" entityId={n._id} />
               </div>
-            ) : (
-              <p className="mt-1 break-all whitespace-pre-wrap text-sm text-stone-600 dark:text-zinc-300">{n.content || "Note vide — cliquez sur Modifier."}</p>
-            )}
-          </Card>))}
+            </Card>
+          );
+        })}
         </div>
       </section>
-      {!isLoading && notes.length === 0 && <div className="mt-4"><EmptyState title="Votre première note vous attend" hint="Capturez une idée, un compte-rendu, un lien à ne pas perdre." action={<Button onClick={() => (document.querySelector('input[aria-label="Nouvelle note"]') as HTMLInputElement)?.focus()}>Écrire ma première note</Button>} /></div>}
+      {!isLoading && notes.length === 0 && <div className="mt-4"><EmptyState title="Votre première note vous attend" hint="Capture rapide ci-dessus, ou document complet avec assistant et exports." action={<Button onClick={() => void newDocument()}>Créer un document</Button>} /></div>}
     </div>
   );
 }
