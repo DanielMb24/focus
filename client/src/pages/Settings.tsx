@@ -8,6 +8,20 @@ import { Topbar } from "../components/layout/Shell";
 import { NativeDownloads } from "../components/layout/NativeDownloads";
 import { applyTheme, currentThemeChoice, type ThemeChoice } from "../lib/theme";
 import { Card, Button } from "../components/ui/primitives";
+import { cn } from "../lib/cn";
+
+const inputCls = "mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900";
+const pillActive = "rounded-full bg-stone-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-white dark:text-zinc-900";
+const pillInactive = "rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-600 transition hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700";
+
+function SectionTitle({ kicker, title }: { kicker: string; title: string }) {
+  return (
+    <>
+      <p className="kicker">{kicker}</p>
+      <h2 className="mt-1 text-lg font-bold tracking-tight">{title}</h2>
+    </>
+  );
+}
 
 export function Settings() {
   const { data: me } = useMe();
@@ -59,40 +73,40 @@ export function Settings() {
   }
 
   return (
-    <div><Topbar title="Paramètres" />
-      {msg && <p role="status" className="mb-3 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-800">{msg}</p>}
-      <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
-        <Card><h2 className="font-black tracking-tight">Profil</h2>
-          <p className="mt-1 truncate text-sm text-stone-500">{me?.email} · {me?.profileType}</p>
+    <div className="pb-24 md:pb-8"><Topbar title="Paramètres" subtitle="Personnalisez Focus" />
+      {msg && <p role="status" className="mb-3 rounded-lg bg-stone-100 px-3 py-2 text-sm font-medium text-stone-700 dark:bg-zinc-800 dark:text-zinc-100">{msg}</p>}
+      <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
+        <Card><SectionTitle kicker="01 — Compte" title="Profil" />
+          <p className="mt-1 truncate text-sm text-stone-500 dark:text-zinc-400">{me?.email} · {me?.profileType}</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <label className="text-sm font-medium">Prénom<input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-600" /></label>
-            <label className="text-sm font-medium">Nom<input value={lastName} onChange={(e) => setLastName(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-600" /></label>
+            <label className="text-sm font-medium">Prénom<input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} /></label>
+            <label className="text-sm font-medium">Nom<input value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputCls} /></label>
           </div>
           <Button className="mt-3" onClick={saveProfile}>Enregistrer</Button>
         </Card>
-        <Card><h2 className="font-black tracking-tight">Apparence</h2>
+        <Card><SectionTitle kicker="02 — Affichage" title="Apparence" />
           <div className="mt-3 flex flex-wrap gap-2">
             {([["light", "Clair"], ["dark", "Sombre"], ["system", "Système"]] as [ThemeChoice, string][]).map(([t, label]) => (
-              <button key={t} onClick={() => changeTheme(t)} className={theme === t ? "rounded-full bg-stone-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900" : "rounded-full bg-stone-200/60 px-4 py-1.5 text-sm text-stone-600 hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"}>
+              <button key={t} onClick={() => changeTheme(t)} className={cn(theme === t ? pillActive : pillInactive)}>
                 {label}
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-stone-500">« Système » suit automatiquement le mode clair/sombre de votre appareil.</p>
+          <p className="mt-2 text-xs text-stone-500 dark:text-zinc-400">« Système » suit automatiquement le mode clair/sombre de votre appareil.</p>
         </Card>
-        <Card><h2 className="font-black tracking-tight">Espaces</h2>
+        <Card><SectionTitle kicker="03 — Organisation" title="Espaces" />
           <div className="mt-2 space-y-1">{workspaces.map((w) => (
             <div key={w._id} className="flex items-center gap-2">
-              <button onClick={() => setActive(w._id)} className={activeWorkspaceId === w._id ? "flex-1 rounded-lg bg-stone-100 px-2 py-1.5 text-left text-sm font-bold dark:bg-zinc-800 dark:text-zinc-100" : "flex-1 rounded-lg px-2 py-1.5 text-left text-sm text-stone-600 hover:bg-stone-50 dark:text-zinc-300 dark:hover:bg-zinc-800/60"}>{w.name} ({w.type})</button>
-              <button aria-label={`Supprimer ${w.name}`} onClick={() => deleteWorkspace(w._id, w.name)} className="rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-red-50 hover:text-red-700">✕</button>
+              <button onClick={() => setActive(w._id)} className={activeWorkspaceId === w._id ? "flex-1 rounded-lg bg-stone-100 px-2 py-1.5 text-left text-sm font-semibold dark:bg-zinc-800 dark:text-zinc-100" : "flex-1 rounded-lg px-2 py-1.5 text-left text-sm text-stone-600 transition hover:bg-stone-100 dark:text-zinc-300 dark:hover:bg-zinc-800/60"}>{w.name} ({w.type})</button>
+              <button aria-label={`Supprimer ${w.name}`} onClick={() => deleteWorkspace(w._id, w.name)} className="rounded-full px-2 py-1 text-xs text-stone-400 transition hover:bg-stone-100 hover:text-stone-900">✕</button>
             </div>))}
           </div>
-          <div className="mt-3 flex gap-2"><input aria-label="Nom du nouvel espace" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nouvel espace…" className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-600" />
+          <div className="mt-3 flex gap-2"><input aria-label="Nom du nouvel espace" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nouvel espace…" className={cn(inputCls, "!mt-0")} />
             <Button onClick={async () => { if (!name.trim()) return; const d = await create.mutateAsync({ name: name.trim(), type: "personal" }) as unknown as { workspace: { _id: string } }; setActive(d.workspace._id); setName(""); refetch(); }}>Créer</Button></div>
         </Card>
-        <Card><h2 className="font-black tracking-tight">Mot de passe</h2><PasswordForm /></Card>
-        <Card><h2 className="font-black tracking-tight">Session</h2><Button variant="danger" className="mt-2" onClick={logout}>Se déconnecter</Button></Card>
-        <Card><h2 className="font-black tracking-tight">Application mobile & bureau</h2><NativeDownloads /></Card>
+        <Card><SectionTitle kicker="04 — Sécurité" title="Mot de passe" /><PasswordForm /></Card>
+        <Card><SectionTitle kicker="05 — Session" title="Session" /><Button variant="danger" className="mt-2" onClick={logout}>Se déconnecter</Button></Card>
+        <Card><SectionTitle kicker="06 — Applications" title="Application mobile & bureau" /><NativeDownloads /></Card>
       </div>
     </div>
   );
@@ -105,7 +119,6 @@ function PasswordForm() {
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  const inputCls = "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-600 dark:border-zinc-700 dark:bg-zinc-800";
 
   async function submit() {
     setMsg(""); setErr("");
@@ -126,7 +139,7 @@ function PasswordForm() {
       <label className="block text-sm font-medium">Nouveau (8+ caractères)<input type="password" value={next} onChange={(e) => setNext(e.target.value)} className={inputCls} /></label>
       <label className="block text-sm font-medium">Confirmation<input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} className={inputCls} /></label>
       {err && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{err}</p>}
-      {msg && <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">{msg}</p>}
+      {msg && <p role="status" className="rounded-lg bg-stone-100 px-3 py-2 text-sm font-medium text-stone-700 dark:bg-zinc-800 dark:text-zinc-100">{msg}</p>}
       <Button disabled={busy} onClick={() => void submit()}>{busy ? "…" : "Modifier"}</Button>
     </div>
   );

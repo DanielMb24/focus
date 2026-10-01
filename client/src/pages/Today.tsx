@@ -9,6 +9,8 @@ import { useUI, useWorkspace } from "../store/ui";
 function dayKey(d?: string) { if (!d) return ""; return new Date(d).toDateString(); }
 const todayK = new Date().toDateString();
 
+const inputCls = "rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900";
+
 export function Today() {
   const { data: tasks = [], isLoading } = useTasks();
   const { data: projects = [] } = useProjects();
@@ -36,29 +38,35 @@ export function Today() {
     return { overdue, today, doneToday };
   }, [tasks]);
 
-  if (isLoading) return <div><Topbar title="Aujourd'hui" /><Skeleton className="h-32" /></div>;
+  if (isLoading) return <div className="pb-24 md:pb-8"><Topbar title="Aujourd'hui" /><Skeleton className="h-32" /></div>;
   return (
-    <div>
+    <div className="pb-24 md:pb-8">
       <Topbar title="Aujourd'hui" subtitle={`${today.length} tâche(s) prévue(s)`} />
       <form onSubmit={(e) => { e.preventDefault(); void quickAddToday(); }} className="mb-5 flex gap-2">
         <input aria-label="Ajouter une tâche pour aujourd'hui" value={quickTitle} onChange={(e) => setQuickTitle(e.target.value)}
           placeholder="Ajouter une tâche pour aujourd'hui… Entrée pour valider"
-          className="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm shadow-subtle outline-none focus:border-blue-700 dark:border-zinc-700 dark:bg-zinc-900" />
+          className={`${inputCls} w-full`} />
         <Button type="submit" disabled={create.isPending} aria-label="Ajouter"><Plus size={17} /></Button>
       </form>
-      {quickErr && <p role="alert" className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{quickErr}</p>}
+      {quickErr && <p role="alert" className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:bg-red-950/40 dark:text-red-300">{quickErr}</p>}
       {overdue.length > 0 && (
-        <section className="mb-6" aria-label="En retard"><h2 className="mb-2 font-black tracking-tight text-red-700">En retard ({overdue.length})</h2>
-          <div className="stagger space-y-2">{overdue.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>
+        <section className="mb-8" aria-label="En retard">
+          <p className="kicker">01 — Retard</p>
+          <h2 className="mt-1 text-lg font-bold tracking-tight">En retard · {overdue.length}</h2>
+          <div className="mt-2.5 space-y-2">{overdue.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>
         </section>
       )}
-      <section aria-label="Prévues"><h2 className="mb-2 font-black tracking-tight">Prévues aujourd'hui</h2>
-        {today.length === 0 ? <EmptyState title="Journée claire" hint="Ajoutez vos priorités du jour." action={<Button onClick={() => setQuickAdd(true)}>Créer une tâche</Button>} />
-          : <div className="stagger space-y-2">{today.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>}
+      <section aria-label="Prévues">
+        <p className="kicker">02 — Jour</p>
+        <h2 className="mt-1 text-lg font-bold tracking-tight">Prévues aujourd'hui</h2>
+        {today.length === 0 ? <div className="mt-2.5"><EmptyState title="Journée claire" hint="Ajoutez vos priorités du jour." action={<Button onClick={() => setQuickAdd(true)}>Créer une tâche</Button>} /></div>
+          : <div className="mt-2.5 space-y-2">{today.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>}
       </section>
       {doneToday.length > 0 && (
-        <section className="mt-6" aria-label="Terminées"><h2 className="mb-2 font-black tracking-tight text-emerald-700">Terminées ({doneToday.length})</h2>
-          <div className="space-y-2 opacity-80">{doneToday.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>
+        <section className="mt-8" aria-label="Terminées">
+          <p className="kicker">03 — Bilan</p>
+          <h2 className="mt-1 text-lg font-bold tracking-tight">Terminées · {doneToday.length}</h2>
+          <div className="mt-2.5 space-y-2 opacity-80">{doneToday.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>
         </section>
       )}
     </div>

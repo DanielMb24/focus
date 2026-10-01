@@ -69,26 +69,37 @@ export function Dashboard() {
   return (
     <div>
       <Topbar title={`Bonjour ${me?.firstName ?? ""}`} subtitle={format(new Date(), "EEEE d MMMM", { locale: fr })} />
-      <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[{ l: "Aujourd'hui", v: stats.today }, { l: "Terminées", v: stats.done }, { l: "En retard", v: stats.overdue }, { l: "Progression", v: `${stats.rate}%` }].map((s) => (
-          <Card key={s.l}>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-stone-400">{s.l}</p>
-            <p className="mt-1 text-3xl font-black tabular-nums tracking-tight">{s.v}</p>
-          </Card>
-        ))}
-      </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+      {/* 01 — Chiffres du jour, bandeau sobre avec filets */}
+      <section aria-label="Chiffres du jour">
+        <p className="kicker">01 — Aperçu</p>
+        <dl className="mt-2 grid grid-cols-2 divide-stone-200 rounded-xl border border-stone-200 bg-white max-sm:gap-px sm:grid-cols-4 sm:divide-x dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+          {[
+            { l: "Aujourd'hui", v: String(stats.today) },
+            { l: "Terminées", v: String(stats.done) },
+            { l: "En retard", v: String(stats.overdue) },
+            { l: "Progression", v: `${stats.rate}%` },
+          ].map((s) => (
+            <div key={s.l} className="px-4 py-3.5">
+              <dt className="text-[11px] font-semibold uppercase tracking-widest text-stone-400">{s.l}</dt>
+              <dd className="font-display mt-0.5 text-[28px] font-bold tabular-nums leading-none tracking-tight">{s.v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-2 [&>*]:min-w-0">
         {showSuggestions && (
           <section aria-label="Suggestions" className="lg:col-span-2">
-            <h2 className="mb-2 font-black tracking-tight">Suggestions pour vous</h2>
-            <div className="stagger flex flex-wrap gap-2">
+            <p className="kicker">Suggestion</p>
+            <h2 className="mt-1 text-lg font-bold tracking-tight">Par où commencer</h2>
+            <div className="mt-2.5 flex flex-wrap gap-2">
               {SUGGESTIONS[me?.profileType ?? "student"].map((s) => (
                 <button
                   key={s.title}
                   disabled={!activeWorkspaceId || createTask.isPending}
                   onClick={() => activeWorkspaceId && createTask.mutate({ workspaceId: activeWorkspaceId, title: s.title, priority: s.priority })}
-                  className="btn-press rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium transition hover:border-blue-700 hover:text-blue-800 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:border-blue-500 dark:hover:text-blue-300"
+                  className="btn-press rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium transition hover:border-stone-500 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                 >
                   + {s.title}
                 </button>
@@ -97,34 +108,49 @@ export function Dashboard() {
           </section>
         )}
         <section aria-label="Tâches du jour">
-          <div className="mb-2 flex items-center justify-between"><h2 className="font-semibold">Aujourd'hui</h2><Link to="/today" className="text-sm text-blue-600">Tout voir</Link></div>
-          {isLoading ? <Skeleton className="h-24" /> : todayTasks.length === 0 ? (
-            <EmptyState title="Rien d'urgent aujourd'hui" hint="Ajoutez ce que vous souhaitez accomplir." action={<Button onClick={() => setQuickAdd(true)}>Créer une tâche</Button>} />
-          ) : (<div className="stagger space-y-2">{todayTasks.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>)}
+          <p className="kicker">02 — Jour</p>
+          <div className="mt-1 flex items-baseline justify-between gap-2">
+            <h2 className="text-lg font-bold tracking-tight">Aujourd'hui</h2>
+            <Link to="/today" className="text-sm font-medium text-stone-500 hover:text-stone-900">Tout voir →</Link>
+          </div>
+          {isLoading ? <Skeleton className="mt-2.5 h-24" /> : todayTasks.length === 0 ? (
+            <div className="mt-2.5"><EmptyState title="Rien d'urgent aujourd'hui" hint="Ajoutez ce que vous souhaitez accomplir." action={<Button onClick={() => setQuickAdd(true)}>Créer une tâche</Button>} /></div>
+          ) : (<div className="mt-2.5 space-y-2">{todayTasks.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>)}
         </section>
-        <div className="space-y-6">
+        <div className="space-y-8">
           <section aria-label="Projets récents">
-            <div className="mb-2 flex items-center justify-between"><h2 className="font-semibold">Projets récents</h2><Link to="/projects" className="text-sm text-blue-600">Tout voir</Link></div>
-            <div className="stagger space-y-3">{projects.slice(0, 3).map((p) => (
-              <Link key={p._id} to={`/projects/${p._id}`}><Card><div className="flex justify-between text-sm"><span className="font-bold">{p.name}</span><span className="font-black tabular-nums">{p.progress ?? 0}%</span></div>
-                <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-stone-200 dark:bg-zinc-800"><div className="progress-fill h-1.5 rounded-full" style={{ ["--w" as string]: `${p.progress ?? 0}%`, width: `${p.progress ?? 0}%` }} /></div></Card></Link>
+            <p className="kicker">03 — Projets</p>
+            <div className="mt-1 flex items-baseline justify-between gap-2">
+              <h2 className="text-lg font-bold tracking-tight">Projets récents</h2>
+              <Link to="/projects" className="text-sm font-medium text-stone-500 hover:text-stone-900">Tout voir →</Link>
+            </div>
+            <div className="mt-2.5 space-y-2.5">{projects.slice(0, 3).map((p) => (
+              <Link key={p._id} to={`/projects/${p._id}`}><Card><div className="flex items-baseline justify-between gap-2 text-sm"><span className="truncate font-semibold">{p.name}</span><span className="font-bold tabular-nums">{p.progress ?? 0}%</span></div>
+                <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-stone-200 dark:bg-zinc-800"><div className="progress-fill h-1 rounded-full" style={{ ["--w" as string]: `${p.progress ?? 0}%`, width: `${p.progress ?? 0}%` }} /></div></Card></Link>
             ))}{projects.length === 0 && <EmptyState title="Aucun projet" hint="Organisez vos tâches par projet." action={<Link to="/projects"><Button>Créer un projet</Button></Link>} />}</div>
           </section>
           <section aria-label="Priorités">
-            <h2 className="mb-2 font-semibold">Priorités</h2>
-            <div className="stagger space-y-2">{urgent.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}{urgent.length === 0 && <p className="text-sm text-zinc-500">Aucune tâche urgente. Belle avance !</p>}</div>
+            <p className="kicker">04 — Signal faible</p>
+            <h2 className="mt-1 text-lg font-bold tracking-tight">Priorités</h2>
+            <div className="mt-2.5 space-y-2">{urgent.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}{urgent.length === 0 && <p className="text-sm text-stone-500">Aucune tâche urgente. Belle avance.</p>}</div>
           </section>
           {recentFiles.length > 0 && (
             <section aria-label="Fichiers récents">
-              <div className="mb-2 flex items-center justify-between"><h2 className="font-semibold">Fichiers récents</h2><Link to="/files" className="text-sm text-blue-700 dark:text-blue-400">Voir tout</Link></div>
-              <div className="space-y-2">
-                {recentFiles.slice(0, 3).map((f) => (
-                  <Link key={f._id} to={`/files/${f._id}`}>
-                    <Card><p className="truncate text-sm font-medium">📄 {f.name}</p>
-                      <p className="text-xs text-stone-500">{f.mimeType} · {(f.size / 1024).toFixed(0)} Ko</p></Card>
-                  </Link>
-                ))}
+              <p className="kicker">05 — Documents</p>
+              <div className="mt-1 flex items-baseline justify-between gap-2">
+                <h2 className="text-lg font-bold tracking-tight">Fichiers récents</h2>
+                <Link to="/files" className="text-sm font-medium text-stone-500 hover:text-stone-900">Voir tout →</Link>
               </div>
+              <ul className="mt-2.5 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+                {recentFiles.slice(0, 3).map((f) => (
+                  <li key={f._id}>
+                    <Link to={`/files/${f._id}`} className="block px-4 py-3 transition hover:bg-stone-50 dark:hover:bg-zinc-800/60">
+                      <p className="truncate text-sm font-medium">{f.name}</p>
+                      <p className="mt-0.5 font-mono text-[11px] uppercase tracking-wide text-stone-400">{f.mimeType} · {(f.size / 1024).toFixed(0)} Ko</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
         </div>
@@ -132,6 +158,3 @@ export function Dashboard() {
     </div>
   );
 }
-
-
-

@@ -26,7 +26,7 @@ export function TaskRow({ task, projectName }: { task: Task; projectName?: strin
   const done = task.status === "completed";
   const subDone = (task.subtasks ?? []).filter((s) => s.completed).length;
   return (
-    <div className="task-row group flex items-center gap-3 rounded-xl border border-stone-200 bg-white px-3.5 py-3 shadow-subtle dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="task-row group flex items-center gap-3 rounded-xl border border-stone-200 bg-white px-3.5 py-3 dark:border-zinc-800 dark:bg-zinc-900">
       <button
         aria-label={done ? "Rouvrir la tâche" : "Terminer la tâche"}
         onClick={() => toggle.mutate(task._id)}

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  Folder as FolderIcon, FileText, Image as ImageIcon, Film, Music, Archive, File as FileIcon,
+  Folder as FolderIcon, FileText,
   Search, Plus, Upload, Star, Trash2, RotateCcw, ChevronRight, ChevronLeft, X,
   LayoutGrid, List as ListIcon, CheckSquare, Download, Share2, FolderPlus, Camera, FolderInput, ScanLine, WifiOff, HardDrive, RefreshCw, Copy,
 } from "lucide-react";
@@ -198,7 +198,7 @@ export function Files() {
           <nav className="space-y-0.5" aria-label="Vues fichiers">
             {([["files", "Mes fichiers"], ["recent", "Récents"], ["favorites", "Favoris"], ["trash", "Corbeille"]] as [View, string][]).map(([v, label]) => (
               <button key={v} onClick={() => { setView(v); if (v === "files") setFolderId(null); }}
-                className={view === v ? "block w-full rounded-lg bg-stone-900 px-3 py-2 text-left text-sm font-medium text-white" : "block w-full rounded-lg px-3 py-2 text-left text-sm text-stone-600 hover:bg-stone-100"}>
+                className={view === v ? "block w-full rounded-lg bg-stone-900 px-3 py-2 text-left text-sm font-bold text-white dark:bg-white dark:text-zinc-900" : "block w-full rounded-lg px-3 py-2 text-left text-sm text-stone-600 hover:bg-stone-100 dark:text-zinc-300 dark:hover:bg-zinc-800"}>
                 {label}
               </button>
             ))}
@@ -206,7 +206,7 @@ export function Files() {
           {quota && (
             <div className="mt-4 rounded-xl border border-stone-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
               <p className="flex items-center gap-1.5 text-xs font-bold"><HardDrive size={13} /> Stockage</p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200"><div className="progress-fill h-1.5 rounded-full" style={{ ["--w" as string]: `${pct}%`, width: `${pct}%` }} /></div>
+              <div className="mt-2 h-1 overflow-hidden rounded-full bg-stone-200"><div className="progress-fill h-1 rounded-full" style={{ ["--w" as string]: `${pct}%`, width: `${pct}%` }} /></div>
               <p className="mt-1 text-xs text-stone-500">{formatSize(quota.used)} / {formatSize(quota.limit)}</p>
             </div>
           )}
@@ -217,7 +217,7 @@ export function Files() {
           <div className="mb-3 flex gap-2 overflow-x-auto lg:hidden" role="tablist" aria-label="Vues fichiers">
             {([["files", "Fichiers"], ["recent", "Récents"], ["favorites", "Favoris"], ["trash", "Corbeille"]] as [View, string][]).map(([v, label]) => (
               <button key={v} role="tab" aria-selected={view === v} onClick={() => { setView(v); if (v === "files") setFolderId(null); }}
-                className={view === v ? "shrink-0 rounded-full bg-stone-900 px-3.5 py-1.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900" : "shrink-0 rounded-full bg-stone-200/60 px-3.5 py-1.5 text-sm text-stone-600 dark:bg-zinc-800 dark:text-zinc-300"}>
+                className={view === v ? "shrink-0 rounded-full bg-stone-900 px-3.5 py-1.5 text-sm font-bold text-white dark:bg-white dark:text-zinc-900" : "shrink-0 rounded-full bg-stone-100 px-3.5 py-1.5 text-sm font-bold text-stone-600 dark:bg-zinc-800 dark:text-zinc-300"}>
                 {label}
               </button>
             ))}
@@ -227,7 +227,7 @@ export function Files() {
           {view === "files" && (
             <div className="mb-3 flex items-center gap-1 text-sm">
               {folderId && <button aria-label="Dossier parent" onClick={() => setFolderId(folderDetail?.folder.parentId ?? null)} className="rounded-lg p-1.5 hover:bg-stone-100 lg:hidden"><ChevronLeft size={18} /></button>}
-              <button onClick={() => setFolderId(null)} className={cn("rounded px-1 font-medium hover:underline", !folderId && "font-black")}>Mes fichiers</button>
+              <button onClick={() => setFolderId(null)} className={cn("rounded px-1 font-medium hover:underline", !folderId && "font-bold")}>Mes fichiers</button>
               {crumbs.map((c) => (
                 <span key={c._id} className="flex items-center gap-1">
                   <ChevronRight size={14} className="text-stone-400" />
@@ -235,7 +235,7 @@ export function Files() {
                 </span>
               ))}
               {folderDetail && (
-                <span className="flex items-center gap-1"><ChevronRight size={14} className="text-stone-400" /><span className="font-black">{folderDetail.folder.name}</span></span>
+                <span className="flex items-center gap-1"><ChevronRight size={14} className="text-stone-400" /><span className="font-bold">{folderDetail.folder.name}</span></span>
               )}
             </div>
           )}
@@ -243,28 +243,28 @@ export function Files() {
           {/* Barre d'outils */}
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <div className="relative min-w-40 flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-              <input aria-label="Rechercher dans mes fichiers" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher nom, extension…" className="w-full rounded-lg border border-stone-300 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-stone-600 dark:border-zinc-700 dark:bg-zinc-900" />
+              <Search size={15} className="absolute left-3 top-1/2 -transtone-y-1/2 text-stone-400" />
+              <input aria-label="Rechercher dans mes fichiers" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher nom, extension…" className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-9 pr-3 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900" />
             </div>
-            <select aria-label="Filtrer par type" value={type} onChange={(e) => setType(e.target.value)} className="rounded-lg border border-stone-300 bg-white px-2 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <select aria-label="Filtrer par type" value={type} onChange={(e) => setType(e.target.value)} className="rounded-lg border border-stone-200 bg-white px-2 py-2 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900">
               <option value="">Tous types</option><option value="document">Documents</option><option value="image">Images</option><option value="video">Vidéos</option><option value="audio">Audio</option><option value="archive">Archives</option>
             </select>
-            <select aria-label="Trier" value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-stone-300 bg-white px-2 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <select aria-label="Trier" value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-stone-200 bg-white px-2 py-2 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900">
               <option value="newest">Récents</option><option value="oldest">Anciens</option><option value="name">Nom</option><option value="size">Taille</option><option value="type">Type</option>
             </select>
-            <button aria-label={layout === "grid" ? "Vue liste" : "Vue grille"} onClick={() => setLayout(layout === "grid" ? "list" : "grid")} className="rounded-lg border border-stone-300 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-900">
+            <button aria-label={layout === "grid" ? "Vue liste" : "Vue grille"} onClick={() => setLayout(layout === "grid" ? "list" : "grid")} className="rounded-lg border border-stone-200 bg-white p-2 transition hover:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900">
               {layout === "grid" ? <ListIcon size={17} /> : <LayoutGrid size={17} />}
             </button>
-            <button onClick={() => setSelectMode(!selectMode)} aria-pressed={selectMode} className={selectMode ? "rounded-lg bg-stone-900 px-3 py-2 text-sm font-medium text-white" : "rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"}>
+            <button onClick={() => setSelectMode(!selectMode)} aria-pressed={selectMode} className={selectMode ? "rounded-lg bg-stone-900 px-3 py-2 text-sm font-bold text-white dark:bg-white dark:text-zinc-900" : "rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"}>
               <span className="flex items-center gap-1.5"><CheckSquare size={15} /> Sélection</span>
             </button>
             <div className="relative md:hidden">
               <button aria-label={fabOpen ? "Fermer le menu" : "Ajouter : dossier, import, photo, scan, synchro"} aria-expanded={fabOpen} onClick={() => setFabOpen(!fabOpen)}
-                className="btn-press flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-white shadow-lift">
+                className="btn-press flex h-10 w-10 items-center justify-center rounded-full bg-[#1d4ed8] text-white shadow-lift">
                 <Plus size={19} className={cn("transition-transform", fabOpen && "rotate-45")} />
               </button>
               {fabOpen && (
-                <div className="animate-pop absolute right-0 top-full z-40 mt-2 w-60 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="animate-pop absolute right-0 top-full z-40 mt-2 w-60 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
                   <FabMenu
                     onNewFolder={() => { setFabOpen(false); setShowNewFolder(true); }}
                     onImportFiles={() => { setFabOpen(false); fileInput.current?.click(); }}
@@ -279,10 +279,10 @@ export function Files() {
           </div>
 
           {uploadErr && <p role="alert" className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{uploadErr}</p>}
-          {!navigator.onLine && <p className="mb-3 flex items-center gap-2 rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-900"><WifiOff size={15} /> Hors ligne — les imports seront mis en file et envoyés à la reconnexion.</p>}
+          {!navigator.onLine && <p className="mb-3 flex items-center gap-2 rounded-lg bg-stone-100 px-3 py-2 text-sm font-medium text-stone-700 dark:bg-zinc-800 dark:text-zinc-200"><WifiOff size={15} /> Hors ligne — les imports seront mis en file et envoyés à la reconnexion.</p>}
 
           {selected.size > 0 && (
-            <div className="animate-pop mb-3 rounded-xl bg-stone-900 px-3 py-2 text-sm text-white">
+            <div className="animate-pop mb-3 rounded-xl bg-stone-900 px-3 py-2 text-sm text-white dark:bg-zinc-900">
               <div className="flex items-center gap-2">
                 <span className="font-bold">{selected.size} sélectionné(s)</span>
                 <span className="flex-1" />
@@ -299,7 +299,7 @@ export function Files() {
                     <option value="">Racine (Mes fichiers)</option>
                     {allFolders.map((f) => <option key={f._id} value={f._id}>{f.name}</option>)}
                   </select>
-                  <button disabled={batchBusy} onClick={() => void batchMove()} className="shrink-0 rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-bold hover:bg-blue-800 disabled:opacity-50">OK</button>
+                  <button disabled={batchBusy} onClick={() => void batchMove()} className="shrink-0 rounded-lg bg-[#1d4ed8] px-3 py-1.5 text-sm font-bold hover:bg-[#1e40af] disabled:opacity-50">OK</button>
                 </div>
               )}
             </div>
@@ -309,12 +309,12 @@ export function Files() {
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files.length) void handleFiles(e.dataTransfer.files); }}
-            className={cn("rounded-2xl border-2 border-dashed p-1 transition", dragOver ? "border-blue-700 bg-blue-50/50" : "border-transparent")}
+            className={cn("rounded-lg border-2 border-dashed p-1 transition", dragOver ? "border-stone-500 bg-stone-100" : "border-transparent")}
           >
             {loading ? <Skeleton className="h-40" /> : (
               <>
                 {view === "files" && folders.length > 0 && (
-                  <div className={cn("mb-2 grid gap-2", layout === "grid" ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1")}>
+                  <div className={cn("mb-2 grid gap-3", layout === "grid" ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1")}>
                     {folders.map((f) => (
                       <FolderRow key={f._id} folder={f} layout={layout} selectMode={selectMode} selected={selected.has(`folder:${f._id}`)}
                         onToggle={() => toggleSelect("folder", f._id)}
@@ -324,7 +324,7 @@ export function Files() {
                   </div>
                 )}
                 {shownFiles.length > 0 ? (
-                  <div className={cn("grid gap-2", layout === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1")}>
+                  <div className={cn("grid gap-3", layout === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1")}>
                     {shownFiles.map((f) => (
                       <FileRow key={f._id} file={f} layout={layout} selectMode={selectMode} selected={selected.has(`file:${f._id}`)}
                         onToggle={() => toggleSelect("file", f._id)}
@@ -358,7 +358,7 @@ export function Files() {
       {/* FAB menu (desktop flottant ; sur mobile intégré à la barre d'outils ci-dessus) */}
       <div ref={fabRef} className="fixed bottom-24 right-4 z-40 hidden md:bottom-8 md:right-8 md:block">
         {fabOpen && (
-          <div className="animate-pop mb-3 w-60 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="animate-pop mb-3 w-60 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
             <FabMenu
               onNewFolder={() => { setFabOpen(false); setShowNewFolder(true); }}
               onImportFiles={() => { setFabOpen(false); fileInput.current?.click(); }}
@@ -370,19 +370,19 @@ export function Files() {
           </div>
         )}
         <button aria-label={fabOpen ? "Fermer" : "Ajouter : dossier, import, photo, scan, synchro"} aria-expanded={fabOpen} onClick={() => setFabOpen(!fabOpen)}
-          className="btn-press ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-700 text-white shadow-lift hover:bg-blue-800">
+          className="btn-press ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#1d4ed8] text-white shadow-lift hover:bg-[#1e40af]">
           <Plus size={24} className={cn("transition-transform", fabOpen && "rotate-45")} />
         </button>
       </div>
 
       {showNewFolder && (
         <div role="dialog" aria-modal="true" aria-label="Nouveau dossier" className="animate-overlay fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-4" onClick={() => setShowNewFolder(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="animate-sheet-up w-full max-w-sm rounded-2xl bg-white p-5 dark:bg-zinc-900">
-            <h2 className="font-black tracking-tight">Nouveau dossier</h2>
+          <div onClick={(e) => e.stopPropagation()} className="animate-sheet-up w-full max-w-sm rounded-xl bg-white p-5 dark:bg-zinc-900">
+            <h2 className="text-base font-bold tracking-tight">Nouveau dossier</h2>
             <input autoFocus value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && newFolderName.trim() && activeWorkspaceId) { void createFolder.mutateAsync({ workspaceId: activeWorkspaceId, name: newFolderName.trim(), parentId: folderId }).then(() => { setNewFolderName(""); setShowNewFolder(false); }); } }}
               placeholder="Nom du dossier…" aria-label="Nom du dossier"
-              className="mt-3 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-stone-600 dark:border-zinc-700 dark:bg-zinc-800" />
+              className="mt-3 w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-800" />
             <div className="mt-4 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setShowNewFolder(false)}>Annuler</Button>
               <Button disabled={!newFolderName.trim() || !activeWorkspaceId} onClick={() => { if (activeWorkspaceId) void createFolder.mutateAsync({ workspaceId: activeWorkspaceId, name: newFolderName.trim(), parentId: folderId }).then(() => { setNewFolderName(""); setShowNewFolder(false); }); }}>Créer</Button>
@@ -438,20 +438,24 @@ function FolderRow({ folder, layout, selectMode, selected, onToggle, onOpen, onA
   folder: Folder; layout: "grid" | "list"; selectMode: boolean; selected: boolean; onToggle: () => void; onOpen: () => void; onActions: () => void;
 }) {
   return (
-    <div className={cn("task-row group flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3 shadow-subtle dark:bg-zinc-900", selected ? "border-blue-700" : "border-stone-200 dark:border-zinc-800")}>
-      {selectMode && <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Sélectionner ${folder.name}`} className="h-4 w-4 accent-blue-700" />}
+    <div className={cn("task-row group flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3 dark:bg-zinc-900", selected ? "border-stone-500" : "border-stone-200 dark:border-zinc-800")}>
+      {selectMode && <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Sélectionner ${folder.name}`} className="h-4 w-4 accent-stone-900" />}
       <button onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-label={`Ouvrir ${folder.name}`}>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-500 dark:bg-zinc-800 dark:text-zinc-300">
           <FolderIcon size={20} />
         </span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-bold">{folder.name}</span>
-          <span className="block text-xs text-stone-500">{folder.isFavorite ? "★ Favori · " : ""}Dossier{layout === "list" ? ` · modifié ${formatDistanceToNow(new Date(folder.updatedAt), { addSuffix: true, locale: fr })}` : ""}</span>
+          <span className="block text-xs text-stone-500">{folder.isFavorite ? "Favori · " : ""}Dossier{layout === "list" ? ` · modifié ${formatDistanceToNow(new Date(folder.updatedAt), { addSuffix: true, locale: fr })}` : ""}</span>
         </span>
       </button>
-      <button aria-label={`Actions pour ${folder.name}`} onClick={onActions} className="rounded-lg px-2 py-1 font-black text-stone-400 hover:bg-stone-100">⋯</button>
+      <button aria-label={`Actions pour ${folder.name}`} onClick={onActions} className="rounded-lg px-2 py-1 font-bold text-stone-400 hover:bg-stone-100">⋯</button>
     </div>
   );
+}
+
+function fileTile(_mime: string): string {
+  return "bg-stone-100 text-stone-500 dark:bg-zinc-800 dark:text-zinc-300";
 }
 
 function FileRow({ file, layout, selectMode, selected, onToggle, onOpen, onActions }: {
@@ -459,20 +463,20 @@ function FileRow({ file, layout, selectMode, selected, onToggle, onOpen, onActio
 }) {
   const Icon = fileIcon(file.mimeType);
   return (
-    <div className={cn("task-row group flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3 shadow-subtle dark:bg-zinc-900", selected ? "border-blue-700" : "border-stone-200 dark:border-zinc-800")}>
-      {selectMode && <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Sélectionner ${file.name}`} className="h-4 w-4 shrink-0 accent-blue-700" />}
+    <div className={cn("task-row group flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3 dark:bg-zinc-900", selected ? "border-stone-500" : "border-stone-200 dark:border-zinc-800")}>
+      {selectMode && <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Sélectionner ${file.name}`} className="h-4 w-4 shrink-0 accent-stone-900" />}
       <button onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-label={`Ouvrir ${file.name}`}>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:text-blue-400 dark:bg-blue-950 dark:text-blue-300">
+        <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", fileTile(file.mimeType))}>
           <Icon size={20} />
         </span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-medium">{file.name}</span>
           <span className="block truncate text-xs text-stone-500">
-            {file.isFavorite ? "★ " : ""}{formatSize(file.size)}{layout === "list" ? ` · ${formatDistanceToNow(new Date(file.updatedAt), { addSuffix: true, locale: fr })}` : ""}
+            {file.isFavorite ? "Favori · " : ""}{formatSize(file.size)}{layout === "list" ? ` · ${formatDistanceToNow(new Date(file.updatedAt), { addSuffix: true, locale: fr })}` : ""}
           </span>
         </span>
       </button>
-      <button aria-label={`Actions pour ${file.name}`} onClick={onActions} className="shrink-0 rounded-lg px-2 py-1 font-black text-stone-400 hover:bg-stone-100">⋯</button>
+      <button aria-label={`Actions pour ${file.name}`} onClick={onActions} className="shrink-0 rounded-lg px-2 py-1 font-bold text-stone-400 hover:bg-stone-100">⋯</button>
     </div>
   );
 }
@@ -544,7 +548,7 @@ function ActionSheet({ target, view, onClose, onOpenFile, onOpenFolder }: {
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Actions" className="animate-overlay fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 sm:items-center sm:p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="animate-sheet-up w-full max-w-sm rounded-t-2xl bg-white p-2 shadow-lift sm:rounded-2xl dark:bg-zinc-900" style={{ marginBottom: "env(safe-area-inset-bottom)" }}>
+      <div onClick={(e) => e.stopPropagation()} className="animate-sheet-up w-full max-w-sm rounded-t-3xl bg-white p-2 sm:rounded-xl dark:bg-zinc-900" style={{ marginBottom: "env(safe-area-inset-bottom)" }}>
         {target.kind === "file"
           ? <SheetBtn icon={FileText} label="Ouvrir / Aperçu" onClick={() => onOpenFile(target.id)} />
           : <SheetBtn icon={FolderIcon} label="Ouvrir" onClick={() => onOpenFolder(target.id)} />}
@@ -561,7 +565,7 @@ function ActionSheet({ target, view, onClose, onOpenFile, onOpenFolder }: {
         )}
         {renaming && (
           <div className="p-3">
-            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Nouveau nom…" aria-label="Nouveau nom" className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-600 dark:border-zinc-700 dark:bg-zinc-800" />
+            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Nouveau nom…" aria-label="Nouveau nom" className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-800" />
             <div className="mt-2 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setRenaming(false)}>Annuler</Button>
               <Button onClick={() => void saveRename()}>Renommer</Button>
@@ -570,8 +574,8 @@ function ActionSheet({ target, view, onClose, onOpenFile, onOpenFolder }: {
         )}
         {moving && (
           <div className="p-3">
-            <label className="text-sm font-medium">Destination
-              <select value={dest} onChange={(e) => setDest(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+            <label className="text-sm font-bold">Destination
+              <select value={dest} onChange={(e) => setDest(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-800">
                 <option value="">Racine (Mes fichiers)</option>
                 {folders.filter((f) => f._id !== target.id).map((f) => <option key={f._id} value={f._id}>{f.name}</option>)}
               </select>
@@ -584,8 +588,8 @@ function ActionSheet({ target, view, onClose, onOpenFile, onOpenFolder }: {
         )}
         {copying && (
           <div className="p-3">
-            <label className="text-sm font-medium">Copier vers
-              <select value={copyDest} onChange={(e) => setCopyDest(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+            <label className="text-sm font-bold">Copier vers
+              <select value={copyDest} onChange={(e) => setCopyDest(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none transition focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-800">
                 <option value="">Racine (Mes fichiers)</option>
                 {folders.filter((f) => f._id !== target.id).map((f) => <option key={f._id} value={f._id}>{f.name}</option>)}
               </select>

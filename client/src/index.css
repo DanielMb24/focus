@@ -1,13 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg: #ffffff;
+  --bg: #f2f4f8;
   --surface: #ffffff;
-  --text-primary: #1c1917;
-  --text-secondary: #78716c;
-  --border: #e7e2d8;
+  --text-primary: #14181f;
+  --text-secondary: #5b6472;
+  --border: #e3e7ee;
   --accent: #1d4ed8;
 }
 .dark {
@@ -57,6 +58,8 @@ body {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "tnum" 0, "cv05" 1;
 }
+/* Titres serif : la signature éditoriale du produit. */
+h1, .font-display { font-family: "Fraunces", Georgia, "Times New Roman", serif; letter-spacing: -0.01em; }
 ::selection { background: rgba(29, 78, 216, 0.2); }
 
 /* ---- transition de page : sobre ---- */
@@ -74,17 +77,25 @@ body {
 .stagger > *:nth-child(7) { animation-delay: 0.26s; }
 .stagger > *:nth-child(8) { animation-delay: 0.3s; }
 
-/* ---- cartes ---- */
-.card-lift { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
-.card-lift:hover { border-color: #d6cfbf; box-shadow: 0 1px 2px rgba(28, 25, 23, 0.07), 0 6px 18px -8px rgba(28, 25, 23, 0.18); }
+/* ---- cartes sobres, filet fin ---- */
+.card-lift { transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
+.card-lift:hover { border-color: #c9cfdb; box-shadow: 0 2px 8px rgba(20, 28, 45, 0.08); }
 .dark .card-lift:hover { border-color: #44403c; }
+.card-app { border-radius: 16px; border: 1px solid #e3e7ee; background: #fff; box-shadow: 0 1px 2px rgba(20, 28, 45, 0.05); }
+.dark .card-app { border-color: #292524; background: #1c1917; box-shadow: none; }
+/* Ancien hero en dégradé : rabattu sur un aplat encre, conservé pour compat. */
+.hero-grad { background: #1b1712; }
+.hero-grad-soft { background: #f3f0e9; }
+.chip-float { box-shadow: 0 1px 2px rgba(22, 19, 14, 0.08); }
+/* Méta éditoriale : kicker mono uppercase. */
+.kicker { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary); }
 
 /* ---- boutons ---- */
 .btn-press { transition: transform 0.1s ease, background-color 0.15s ease; }
 .btn-press:active { transform: scale(0.97); }
 
 /* ---- skeleton ---- */
-.shimmer { background: #e7e2d8; animation: breathe 1.6s ease-in-out infinite; }
+.shimmer { background: #e4e8ef; animation: breathe 1.6s ease-in-out infinite; }
 .dark .shimmer { background: #292524; }
 @keyframes breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 
@@ -102,7 +113,9 @@ body {
 .task-check.done { animation: check 0.25s ease-out both; }
 @keyframes check { 0% { transform: scale(0.5); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
 .task-row { transition: border-color 0.15s ease, background-color 0.15s ease; }
-.task-row:hover { border-color: #d6cfbf; }
+.task-row:hover { border-color: #c9cfdb; }
+/* ---- état vide : semis de points ---- */
+.empty-dots { background-image: radial-gradient(#d5dae3 1px, transparent 1.5px); background-size: 14px 14px; }
 
 /* ---- éventail d'actions (speed dial) ---- */
 .fan-item { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease; will-change: transform; }

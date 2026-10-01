@@ -16,6 +16,9 @@ const cols = [
   { id: "completed", label: "Terminé" },
 ] as const;
 
+const pillActive = "btn-press rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-zinc-900";
+const pillInactive = "btn-press rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700";
+
 function DraggableCard({ task }: { task: Task }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: task._id });
   return (
@@ -26,7 +29,7 @@ function DraggableCard({ task }: { task: Task }) {
 }
 function DroppableCol({ id, children }: { id: string; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id });
-  return <div ref={setNodeRef} className={cn("min-h-[200px] space-y-2 rounded-xl bg-zinc-50 p-2 dark:bg-zinc-900/50", isOver && "ring-2 ring-blue-400")}>{children}</div>;
+  return <div ref={setNodeRef} className={cn("min-h-[200px] space-y-2 rounded-lg p-1 transition", isOver && "ring-2 ring-stone-400")}>{children}</div>;
 }
 
 export function ProjectDetail() {
@@ -53,26 +56,28 @@ export function ProjectDetail() {
   }
 
   return (
-    <div>
+    <div className="pb-24 md:pb-8">
       <Topbar title={project?.name ?? "Projet"} subtitle={`${tasks.length} tâche(s) · ${project?.progress ?? 0}%`} />
       {project && (
-        <div className="mb-3 flex gap-2">
+        <div className="mb-4 flex gap-2">
           <Button variant="outline" onClick={() => setEditing(true)}>Modifier le projet</Button>
         </div>
       )}
       {editing && project && <ProjectEdit project={project} onClose={() => setEditing(false)} />}
-      <div className="mb-3 flex gap-2" role="tablist" aria-label="Vues projet">
+      <p className="kicker">01 — Vues</p>
+      <div className="mb-4 mt-2 flex flex-wrap gap-2" role="tablist" aria-label="Vues projet">
         {(["Overview", "List", "Board", "Files"] as const).map((t) => (
-          <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={tab === t ? "rounded-full bg-blue-700 px-3.5 py-1.5 text-sm font-medium text-white" : "rounded-full bg-stone-200/60 px-3.5 py-1.5 text-sm text-stone-600 hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300"}>{t}</button>
+          <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={cn(tab === t ? pillActive : pillInactive)}>{t}</button>
         ))}
       </div>
       {isLoading ? <Skeleton className="h-40" /> : tab === "Board" ? (
         <DndContext sensors={sensors} onDragEnd={onDragEnd}>
           <div className="grid gap-3 md:grid-cols-3">
             {cols.map((c) => (
-              <Card key={c.id}><h3 className="mb-2 text-sm font-semibold">{c.label} ({byCol[c.id].length})</h3>
+              <div key={c.id} className="rounded-xl bg-stone-100/70 p-2.5 dark:bg-zinc-900">
+                <h3 className="mb-2 flex items-center justify-between px-1 text-sm font-semibold">{c.label}<span className="text-sm font-normal tabular-nums text-stone-500">{byCol[c.id].length}</span></h3>
                 <DroppableCol id={c.id}>{byCol[c.id].map((t) => <DraggableCard key={t._id} task={t} />)}</DroppableCol>
-              </Card>
+              </div>
             ))}
           </div>
         </DndContext>
@@ -81,11 +86,10 @@ export function ProjectDetail() {
       ) : tab === "Files" ? (
         <Card>{projectId && <AttachFiles entityType="project" entityId={projectId} />}</Card>
       ) : (
-        <Card><p className="text-sm text-zinc-600">{project?.description ?? "Aucune description."}</p>
-          <p className="mt-2 text-sm">Progression : {project?.progress ?? 0}% ({project?.completedTasks ?? 0}/{project?.totalTasks ?? 0})</p></Card>
+        <Card><p className="text-sm text-stone-500 dark:text-zinc-400">{project?.description ?? "Aucune description."}</p>
+          <p className="mt-2 text-sm font-semibold">Progression : {project?.progress ?? 0}% <span className="font-normal text-stone-500">({project?.completedTasks ?? 0}/{project?.totalTasks ?? 0})</span></p></Card>
       )}
     </div>
   );
 }
-
 
