@@ -42,7 +42,7 @@ export function Sidebar() {
           <Logo size={32} />
           {!sidebarCollapsed && (
             <span className="leading-none">
-              <span className="font-display block text-[19px] font-bold text-white">Focus</span>
+              <span className="block text-[19px] font-bold tracking-tight text-white">Focus</span>
               <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">Espace de travail</span>
             </span>
           )}

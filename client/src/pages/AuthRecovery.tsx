@@ -7,7 +7,7 @@ import { api, setAccessToken, ApiError } from "../lib/api";
 import { useMe } from "../lib/hooks";
 import { Button, Card } from "../components/ui/primitives";
 
-const inputCls = "mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-stone-600 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:border-zinc-400";
+const inputCls = "field-control mt-1.5 w-full";
 
 /** Écran imposé tant que l'email n'est pas vérifié. */
 export function VerifyEmail() {

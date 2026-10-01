@@ -10,7 +10,7 @@ import { applyTheme, currentThemeChoice, type ThemeChoice } from "../lib/theme";
 import { Card, Button } from "../components/ui/primitives";
 import { cn } from "../lib/cn";
 
-const inputCls = "mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900";
+const inputCls = "field-control mt-1 w-full";
 const pillActive = "rounded-full bg-stone-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-white dark:text-zinc-900";
 const pillInactive = "rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-600 transition hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700";
 

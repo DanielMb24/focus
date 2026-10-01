@@ -11,7 +11,7 @@ import { AttachFiles } from "../features/files/AttachFiles";
 import { notify } from "../lib/notify";
 import { cn } from "../lib/cn";
 
-const inputCls = "rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900";
+const inputCls = "field-control field-sm";
 const miniBtn = "shrink-0 rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600 transition hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700";
 const pillActive = "rounded-full bg-stone-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-white dark:text-zinc-900";
 const pillInactive = "rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-600 transition hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700";
@@ -93,11 +93,11 @@ export function Notes() {
           onSubmit={(e) => { e.preventDefault(); if (title.trim()) { create.mutate(title.trim()); setTitle(""); } }}
           className="flex gap-2"
         >
-          <input aria-label="Nouvelle note" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Écrivez une idée, un compte-rendu…" className={cn(inputCls, "h-11 w-full !rounded-xl !px-4 !text-[15px]")} />
+          <input aria-label="Nouvelle note" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Écrivez une idée, un compte-rendu…" className="field-control w-full text-[15px]" />
           <Button type="submit" disabled={!activeWorkspaceId || !title.trim()} className="h-11 shrink-0 !rounded-xl !px-5">Ajouter</Button>
         </form>
         <div className="relative mt-2.5">
-          <input aria-label="Rechercher notes" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher dans vos notes…" className={cn(inputCls, "h-10 w-full !rounded-xl bg-stone-50 !pl-4 dark:bg-zinc-800")} />
+          <input aria-label="Rechercher notes" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher dans vos notes…" className="field-control field-sm mt-2.5 w-full" />
         </div>
       </Card>
       <section aria-label="Liste des notes">
@@ -108,7 +108,7 @@ export function Notes() {
         <div className="mt-2 grid gap-3 md:grid-cols-2">{isLoading ? <Skeleton className="h-24" /> : notes.map((n) => (
           <Card key={n._id} className="card-lift">
             <div className="flex items-center justify-between gap-2">
-              <p className="font-display min-w-0 flex-1 truncate text-[17px] font-bold">{n.title}</p>
+              <p className="min-w-0 flex-1 truncate text-[16px] font-bold tracking-tight">{n.title}</p>
               <div className="flex shrink-0 gap-1">
                 <button aria-label="Modifier la note" onClick={() => { setEditingId(n._id); setDraft(n.content ?? ""); }} className={miniBtn}>Modifier</button>
                 <button aria-label="Supprimer note" onClick={() => del.mutate(n._id)} className="rounded-full px-2 py-1 text-xs text-stone-400 transition hover:bg-stone-100 hover:text-stone-900 dark:text-zinc-500 dark:hover:text-zinc-100">✕</button>
@@ -176,7 +176,7 @@ export function Focus() {
             <select value={taskId} onChange={(e) => setTaskId(e.target.value)} className={cn(inputCls, "mt-1 w-full")}><option value="">—</option>{tasks.filter((t) => t.status !== "completed").slice(0, 30).map((t) => <option key={t._id} value={t._id}>{t.title}</option>)}</select>
           </label>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{presets.map((p) => <button key={p.l} onClick={() => setPlanned(p.s)} className={planned === p.s ? pillActive : pillInactive}>{p.l}</button>)}
-            <label className="flex items-center gap-1 text-sm font-medium text-stone-500">Perso <input aria-label="Durée personnalisée (minutes)" value={custom} onChange={(e) => { setCustom(e.target.value); const n = Number(e.target.value); if (n > 0) setPlanned(Math.min(480, n) * 60); }} type="number" min={1} max={480} className={cn(inputCls, "w-16")} /> min</label>
+            <label className="flex items-center gap-1.5 text-sm font-medium text-stone-500">Perso <input aria-label="Durée personnalisée (minutes)" value={custom} onChange={(e) => { setCustom(e.target.value); const n = Number(e.target.value); if (n > 0) setPlanned(Math.min(480, n) * 60); }} type="number" min={1} max={480} className="field-control field-sm !w-[72px] text-center" /> min</label>
           </div>
           <p className="mx-auto mt-5 flex h-44 w-44 items-center justify-center rounded-full border border-stone-300 text-4xl font-bold tabular-nums tracking-tight dark:border-zinc-700">{mm}</p>
           <p className="mt-2 text-center text-sm text-stone-500">{activeTask?.title ?? "Aucune tâche sélectionnée"}</p>

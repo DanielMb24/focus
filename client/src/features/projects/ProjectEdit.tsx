@@ -19,7 +19,7 @@ const schema = z.object({
 });
 type Form = z.infer<typeof schema>;
 
-const inputCls = "mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-stone-600 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:border-zinc-400";
+const inputCls = "field-control mt-1.5 w-full";
 const colors = ["#1d4ed8", "#047857", "#b45309", "#be123c", "#6d28d9", "#0e7490", "#1c1917"];
 
 function toDateInput(iso?: string | null): string {

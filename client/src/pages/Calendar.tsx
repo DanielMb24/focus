@@ -9,7 +9,7 @@ import { Card, Button } from "../components/ui/primitives";
 import { TaskRow } from "../features/tasks/TaskRow";
 import { cn } from "../lib/cn";
 
-const inputCls = "rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900";
+const inputCls = "field-control field-sm";
 const pillActive = "btn-press rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-zinc-900";
 const pillInactive = "btn-press rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700";
 

@@ -35,7 +35,7 @@ export function EmptyState({ title, hint, action }: { title: string; hint: strin
       <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eaf0ff] text-[#1d4ed8] ring-8 ring-[#f2f5ff] dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-800/50">
         <Inbox size={22} />
       </span>
-      <p className="font-display mt-4 text-[19px] font-bold">{title}</p>
+      <p className="mt-4 text-[19px] font-bold tracking-tight">{title}</p>
       <p className="mt-1 max-w-sm text-sm text-stone-500">{hint}</p>
       {action && <div className="mt-5">{action}</div>}
     </div>

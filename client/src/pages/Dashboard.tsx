@@ -82,7 +82,7 @@ export function Dashboard() {
           ].map((s) => (
             <div key={s.l} className="px-4 py-3.5">
               <dt className="text-[11px] font-semibold uppercase tracking-widest text-stone-400">{s.l}</dt>
-              <dd className="font-display mt-0.5 text-[28px] font-bold tabular-nums leading-none tracking-tight">{s.v}</dd>
+              <dd className="mt-0.5 text-[28px] font-bold tabular-nums leading-none tracking-tight">{s.v}</dd>
             </div>
           ))}
         </dl>

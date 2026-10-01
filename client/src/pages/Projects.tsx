@@ -5,7 +5,7 @@ import { useWorkspace } from "../store/ui";
 import { Topbar } from "../components/layout/Shell";
 import { Card, EmptyState, Skeleton, Button } from "../components/ui/primitives";
 
-const inputCls = "rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900";
+const inputCls = "field-control field-sm";
 
 export function Projects() {
   const { activeWorkspaceId } = useWorkspace();

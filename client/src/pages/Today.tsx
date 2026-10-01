@@ -9,7 +9,7 @@ import { useUI, useWorkspace } from "../store/ui";
 function dayKey(d?: string) { if (!d) return ""; return new Date(d).toDateString(); }
 const todayK = new Date().toDateString();
 
-const inputCls = "rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500 dark:border-zinc-700 dark:bg-zinc-900";
+const inputCls = "field-control field-sm";
 
 export function Today() {
   const { data: tasks = [], isLoading } = useTasks();
