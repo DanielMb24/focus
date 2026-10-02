@@ -114,16 +114,29 @@ export function Sidebar() {
 }
 
 export function MobileNav() {
-  const item = "flex flex-col items-center gap-1 text-[11px] font-medium text-stone-500 transition active:scale-95";
+  const { data: convos = [] } = useConversations(15000);
+  const totalUnread = convos.reduce((n, c) => n + (c.unread ?? 0), 0);
+  const item = "flex flex-col items-center gap-1 text-[10px] font-medium text-stone-500 transition active:scale-95";
   const active = ({ isActive }: { isActive: boolean }) => cn(item, isActive ? "text-stone-900 dark:text-zinc-100" : "dark:text-zinc-400");
   return (
     <nav aria-label="Navigation mobile" className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 pt-2 backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
-      <div className="grid grid-cols-5 items-center px-2">
-        <NavLink to="/" className={active}><LayoutDashboard size={21} />Accueil</NavLink>
-        <NavLink to="/tasks" className={active}><CheckSquare size={21} />Tâches</NavLink>
+      <div className="grid grid-cols-6 items-center px-1">
+        <NavLink to="/" className={active}><LayoutDashboard size={20} />Accueil</NavLink>
+        <NavLink to="/tasks" className={active}><CheckSquare size={20} />Tâches</NavLink>
         <SpeedDial />
-        <NavLink to="/projects" className={active}><FolderKanban size={21} />Projets</NavLink>
-        <NavLink to="/today" className={active}><CalendarDays size={21} />Jour</NavLink>
+        <NavLink to="/chat" className={({ isActive }) => cn(active({ isActive }), "relative")}>
+          <span className="relative">
+            <MessageCircle size={20} />
+            {totalUnread > 0 && (
+              <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#1d4ed8] px-1 text-[10px] font-bold text-white">
+                {totalUnread > 9 ? "9+" : totalUnread}
+              </span>
+            )}
+          </span>
+          Messages
+        </NavLink>
+        <NavLink to="/projects" className={active}><FolderKanban size={20} />Projets</NavLink>
+        <NavLink to="/today" className={active}><CalendarDays size={20} />Jour</NavLink>
       </div>
     </nav>
   );
