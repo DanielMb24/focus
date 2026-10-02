@@ -40,6 +40,7 @@ export function SpeedDial() {
   const actions = [
     { label: "+ Tâche", icon: Plus, cls: "bg-blue-700 text-white", run: () => { close(); setQuickAdd(true); } },
     { label: "+ Projet", icon: FolderPlus, cls: "bg-violet-700 text-white", run: () => setProjectMode(true) },
+    { label: "Messages", icon: MessageCircle, cls: "bg-blue-700 text-white", run: () => go("/chat") },
     { label: "Accueil", icon: LayoutDashboard, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/") },
     { label: "Jour", icon: CalendarDays, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/today") },
     { label: "Tâches", icon: CheckSquare, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/tasks") },
@@ -49,7 +50,6 @@ export function SpeedDial() {
     { label: "Objectifs", icon: Target, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/goals") },
     { label: "Notes", icon: StickyNote, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/notes") },
     { label: "Focus", icon: Timer, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/focus") },
-    { label: "Messages", icon: MessageCircle, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/chat") },
     { label: "Réglages", icon: SettingsIcon, cls: "bg-stone-200 text-stone-700 dark:bg-zinc-800 dark:text-zinc-200", run: () => go("/settings") },
   ];
 
