@@ -14,10 +14,11 @@ import { AttachFiles } from "../features/files/AttachFiles";
 import { Button, Card, EmptyState, Skeleton } from "../components/ui/primitives";
 import { useOutsideClose } from "../lib/outside";
 import { useUI } from "../store/ui";
+import { offlineFirst, patchNoteInCache } from "../lib/offline";
 import { cn } from "../lib/cn";
 import type { Note } from "../types";
 
-type SaveState = "saved" | "saving" | "error";
+type SaveState = "saved" | "saving" | "queued" | "error";
 
 export function NoteEditor() {
   const { noteId } = useParams();
@@ -59,11 +60,20 @@ export function NoteEditor() {
 
   async function saveNow() {
     if (!noteId || loadedId.current !== noteId) return;
-    if (!online) { setSaveState("error"); return; }
+    const payload = { title: titleRef.current.trim() || "Sans titre", content: JSON.stringify(docRef.current) };
     setSaveState("saving");
     try {
-      await update.mutateAsync({ id: noteId, title: titleRef.current.trim() || "Sans titre", content: JSON.stringify(docRef.current) });
-      setSaveState("saved");
+      // Hors-ligne : mis en file locale (fusionnée), rejouée à la reconnexion.
+      const wasQueued = await offlineFirst(
+        { kind: "note", op: "update", id: noteId, payload: { ...payload } },
+        async () => {
+          await update.mutateAsync({ id: noteId, ...payload });
+          return false;
+        },
+        true,
+        () => patchNoteInCache(noteId, payload)
+      );
+      setSaveState(wasQueued || !navigator.onLine ? "queued" : "saved");
       setSavedAt(new Date().toISOString());
     } catch {
       setSaveState("error");
@@ -153,7 +163,8 @@ export function NoteEditor() {
         <span className="ml-auto flex items-center gap-1.5 text-xs text-stone-400" role="status">
           {saveState === "saving" ? <><Loader2 size={13} className="animate-spin" /> Enregistrement…</>
             : saveState === "error" ? <><CloudOff size={13} className="text-red-500" /> <span className="text-red-600">Non enregistré</span> <button onClick={() => void saveNow()} className="font-bold text-blue-700 hover:underline">Réessayer</button></>
-              : <><Check size={13} className="text-emerald-600" /> {savedAt ? `Enregistré à ${new Date(savedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}` : "Enregistré"}</>}
+              : saveState === "queued" ? <><CloudOff size={13} className="text-amber-600" /> <span className="text-amber-700">En attente de connexion — synchro auto</span></>
+                : <><Check size={13} className="text-emerald-600" /> {savedAt ? `Enregistré à ${new Date(savedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}` : "Enregistré"}</>}
         </span>
         <div ref={exportRef} className="relative">
           <Button variant="outline" onClick={() => setExportOpen(!exportOpen)} className="!py-2 text-sm" aria-expanded={exportOpen}>

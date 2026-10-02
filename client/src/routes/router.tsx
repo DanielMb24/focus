@@ -62,15 +62,19 @@ function RequireAuth() {
 
 /** Bloque l'app tant que l'email n'est pas vérifié (comptes antérieurs exemptés). */
 function RequireVerified() {
+  const { online, apiDown } = useUI();
   const { data: me, isLoading, isError } = useMe();
   if (isLoading) return <Skeleton className="h-40" />;
-  // Session réellement morte (même le refresh a échoué) : retour au login,
-  // jamais d'écran vide. Le cache offline persistant couvre le mode avion.
-  if (isError || !me) {
+  // Hors-ligne : on ne jette JAMAIS le token et on ne redirige pas —
+  // l'app tourne sur le cache persisté (sinon rechargement avion = verrouillé dehors).
+  const offline = !navigator.onLine || !online || apiDown;
+  if ((isError || !me) && !offline) {
+    // Session réellement morte (même le refresh a échoué) : retour au login,
+    // jamais d'écran vide.
     setAccessToken(null);
     return <Navigate to="/login" replace />;
   }
-  if (me.emailVerified === false) return <Navigate to="/verify-email" replace />;
+  if (!offline && me?.emailVerified === false) return <Navigate to="/verify-email" replace />;
   return <Outlet />;
 }
 

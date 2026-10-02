@@ -7,7 +7,8 @@ import type { Note } from "../types";
 export type MutationOp =
   | { kind: "task"; op: "create"; tempId: string; payload: Record<string, unknown> }
   | { kind: "task"; op: "update" | "toggle" | "move" | "delete"; id: string; payload?: Record<string, unknown> }
-  | { kind: "note"; op: "create"; tempId: string; payload: Record<string, unknown> };
+  | { kind: "note"; op: "create"; tempId: string; payload: Record<string, unknown> }
+  | { kind: "note"; op: "update"; id: string; payload?: Record<string, unknown> };
 
 export interface OutboxEntry {
   id: string;
@@ -80,33 +81,49 @@ function uid(): string {
   return `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/** Replie une op sur un id temporaire dans la création en attente (pas de doublon). */
+/** Replie une op sur un id temporaire dans la création en attente (pas de doublon),
+ *  ou fusionne les mises à jour successives d'une même entité. */
 async function foldOrEnqueue(op: MutationOp): Promise<void> {
   const id = "tempId" in op ? op.tempId : op.id;
+  const all = await outboxAll();
   if (isTempId(id) && op.op !== "create") {
-    const all = await outboxAll();
-    const create = all.find((e) => e.op.kind === "task" && e.op.op === "create" && e.op.tempId === id);
-    if (create && create.op.op === "create") {
+    const create = all.find((e) => e.op.op === "create" && "tempId" in e.op && (e.op as { tempId: string }).tempId === id);
+    if (create && "tempId" in create.op) {
+      const payload = (create.op as { payload: Record<string, unknown> }).payload;
       if (op.op === "delete") {
         await outboxDelete(create.id);
-        removeTaskFromCache(id);
+        if (create.op.kind === "task") removeTaskFromCache(id);
+        else removeNoteFromCache(id);
         return;
       }
-      if (op.op === "toggle") {
-        const cur = (create.op.payload["status"] as string) ?? "todo";
+      if (op.op === "toggle" && create.op.kind === "task") {
+        const cur = (payload["status"] as string) ?? "todo";
         const next = cur === "completed" ? "todo" : "completed";
-        create.op.payload["status"] = next;
+        payload["status"] = next;
         await outboxPut(create);
         patchTaskInCache(id, { status: next as Task["status"] });
         return;
       }
       if (op.op === "update" || op.op === "move") {
-        Object.assign(create.op.payload, op.payload ?? {});
-        if (op.op === "move" && op.payload?.["status"]) create.op.payload["status"] = op.payload["status"];
+        Object.assign(payload, op.payload ?? {});
+        if (op.op === "move" && create.op.kind === "task" && op.payload?.["status"]) payload["status"] = op.payload["status"];
         await outboxPut(create);
-        patchTaskInCache(id, (op.payload ?? {}) as Partial<Task>);
+        if (create.op.kind === "task") patchTaskInCache(id, (op.payload ?? {}) as Partial<Task>);
+        else patchNoteInCache(id, (op.payload ?? {}) as Partial<Note>);
         return;
       }
+    }
+  }
+  // Mises à jour successives hors-ligne : on fusionne au lieu d'empiler.
+  if (op.op === "update") {
+    const opId = (op as { id: string }).id;
+    const prior = all.find((e) => e.op.kind === op.kind && e.op.op === "update" && "id" in e.op && (e.op as { id: string }).id === opId);
+    if (prior && "id" in prior.op) {
+      const target = (prior.op as { payload?: Record<string, unknown> }).payload ?? {};
+      Object.assign(target, op.payload ?? {});
+      (prior.op as { payload?: Record<string, unknown> }).payload = target;
+      await outboxPut(prior);
+      return;
     }
   }
   await outboxPut({ id: uid(), op, createdAt: Date.now() });
@@ -154,6 +171,23 @@ export function prependNoteToCache(note: Note): void {
   }
 }
 
+export function patchNoteInCache(id: string, patch: Partial<Note>): void {  for (const [key, data] of queryClient.getQueriesData<Note[] | Note>({ queryKey: ["notes"] })) {
+    if (Array.isArray(data)) {
+      if (data.some((n) => n._id === id)) queryClient.setQueryData(key, data.map((n) => (n._id === id ? { ...n, ...patch } : n)));
+    }
+  }
+  const single = queryClient.getQueryData<Note>(["note", id]);
+  if (single) queryClient.setQueryData(["note", id], { ...single, ...patch });
+}
+
+function removeNoteFromCache(id: string): void {
+  for (const [key, data] of queryClient.getQueriesData<Note[]>({ queryKey: ["notes"] })) {
+    if (Array.isArray(data) && data.some((n) => n._id === id)) {
+      queryClient.setQueryData(key, data.filter((n) => n._id !== id));
+    }
+  }
+}
+
 /* ---------- Exécution ---------- */
 
 async function executeOp(op: MutationOp): Promise<void> {
@@ -168,7 +202,11 @@ async function executeOp(op: MutationOp): Promise<void> {
       }
       break;
     case "update":
-      await api(`/api/v1/tasks/${op.id}`, { method: "PATCH", body: JSON.stringify(op.payload ?? {}) });
+      if (op.kind === "task") {
+        await api(`/api/v1/tasks/${op.id}`, { method: "PATCH", body: JSON.stringify(op.payload ?? {}) });
+      } else {
+        await api(`/api/v1/notes/${op.id}`, { method: "PATCH", body: JSON.stringify(op.payload ?? {}) });
+      }
       break;
     case "toggle":
       await api(`/api/v1/tasks/${op.id}/complete`, { method: "PATCH", body: "{}" });

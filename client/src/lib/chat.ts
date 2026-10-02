@@ -22,7 +22,8 @@ export function useConversations(pollMs = 5000) {
         (d) => d.conversations ?? []
       ),
     enabled: !!activeWorkspaceId,
-    refetchInterval: pollMs,
+    // Hors-ligne : pas de polling (requêtes vouées à l'échec + bandeau qui clignote).
+    refetchInterval: () => (navigator.onLine ? pollMs : false),
   });
 }
 
@@ -58,7 +59,7 @@ export function useMessages(convoId?: string | null, limit = 50) {
       return [...older, ...fresh];
     },
     enabled: !!convoId,
-    refetchInterval: 4000,
+    refetchInterval: () => (navigator.onLine ? 4000 : false),
   });
 }
 
