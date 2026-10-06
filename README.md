@@ -28,7 +28,7 @@ npm run dev --prefix client     # :5173 (proxy /api -> :4000)
 ## Fichiers & documents
 - Explorateur `/files` : dossiers/sous-dossiers, import (fichiers, dossier, photo, scan → PDF), aperçu, corbeille, favoris, récents, recherche, tri, grille/liste, quotas.
 - Stockage local `server/uploads` (jamais servi en public, toujours via routes authentifiées) ; abstraction `StorageProvider` prête pour S3/R2/MinIO.
-- Variables : `MAX_FILE_SIZE_MB` (25), `MAX_WORKSPACE_STORAGE_MB` (1024), `STORAGE_DIR` (./uploads).
+- Variables : `MAX_FILE_SIZE_MB` (25), `MAX_ACCOUNT_STORAGE_MB` (5120 = 5 Go par compte, tous espaces), `STORAGE_DIR` (./uploads).
 - Pièces jointes : tâches, projets (onglet Fichiers), notes, objectifs — par liaison, sans duplication.
 
 ## Docker

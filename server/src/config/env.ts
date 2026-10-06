@@ -20,7 +20,9 @@ export const env = {
   BCRYPT_ROUNDS: Number(process.env.BCRYPT_ROUNDS ?? 10),
   CLIENT_URL: process.env.CLIENT_URL ?? "https://mytsak.vercel.app,https://localhost,capacitor://localhost,tauri://localhost",
   MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB ?? 25),
-  MAX_WORKSPACE_STORAGE_MB: Number(process.env.MAX_WORKSPACE_STORAGE_MB ?? 1024),
+  // Quota de stockage PAR COMPTE (tous espaces confondus), en Mo. Défaut 5 Go.
+  // Ancienne variable par espace encore honorée si la nouvelle est absente.
+  MAX_ACCOUNT_STORAGE_MB: Number(process.env.MAX_ACCOUNT_STORAGE_MB ?? process.env.MAX_WORKSPACE_STORAGE_MB ?? 5120),
   STORAGE_DIR: process.env.STORAGE_DIR ?? "./uploads",
   STORAGE_PROVIDER: process.env.STORAGE_PROVIDER ?? "local",
   isProd: (process.env.NODE_ENV ?? "development") === "production",

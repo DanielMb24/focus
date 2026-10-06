@@ -24,7 +24,7 @@ dashboard (c'est lui qui produisait l'erreur d'orchestration `fsPath`).
   `MONGODB_URI` (avec nom de base), `JWT_ACCESS_SECRET`,
   `JWT_REFRESH_SECRET`, `CLIENT_URL=https://focus-web-xxx.vercel.app`,
   `STORAGE_PROVIDER=gridfs`, `STORAGE_DIR=/tmp`,
-  `MAX_FILE_SIZE_MB=10`, `MAX_WORKSPACE_STORAGE_MB=1024`,
+  `MAX_FILE_SIZE_MB=10`, `MAX_ACCOUNT_STORAGE_MB=5120`,
   `NODE_ENV=production`.
 
 ## Ordre

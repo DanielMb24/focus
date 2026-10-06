@@ -71,7 +71,7 @@ Client: react-router-dom, @tanstack/react-query, zustand, react-hook-form, @hook
 
 - Collections : `folders` (parentId, pas d'imbrication), `files` (FileAsset : métadonnées + storageKey opaque `workspace/aaaa/mm/uuid.ext`, jamais de Base64), `fileLinks` (liaison sans duplication), `uploadSessions`.
 - Stockage : interface `StorageProvider` (`store/readStream/stat/delete/exists`) ; `LocalStorageProvider` (dev, servi uniquement via routes authentifiées + Range 206) ; S3/R2/MinIO branchable dans `storage/index.ts` (URLs signées prévues).
-- Upload : multer (tmp disque, max 10 fichiers, `MAX_FILE_SIZE_MB`), allowlist extension+MIME, vérification magique `file-type`, quota espace (`MAX_WORKSPACE_STORAGE_MB`), checksum/dimensions/durée calculés côté client.
+- Upload : multer (tmp disque, max 10 fichiers, `MAX_FILE_SIZE_MB`), allowlist extension+MIME, vérification magique `file-type`, quota compte 5 Go (`MAX_ACCOUNT_STORAGE_MB`, tous espaces hors corbeille), checksum/dimensions/durée calculés côté client.
 - Offline : file IDB `pending-uploads` (rejeu auto à la reconnexion) + `offline-files` (marquage « disponible hors connexion ») ; jamais de blobs dans Zustand/localStorage.
 - PWA : `share_target` GET (texte/liens → note via `/share-target`), `navigator.share` + `canShare` avec fallback, `showDirectoryPicker` avec fallback `webkitdirectory`, `capture="environment"` pour photo/scan.
 - Scanner : capture multi-pages, réorganisation, génération PDF (jsPDF) importée comme un fichier normal.

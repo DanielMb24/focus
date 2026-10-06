@@ -83,7 +83,7 @@ export function Dashboard() {
 
   return (
     <div>
-      <Topbar title={`Bonjour ${me?.firstName ?? ""}`} subtitle={format(new Date(), "EEEE d MMMM", { locale: fr })} />
+      <Topbar title={`Bonjour ${me?.firstName ? me.firstName.charAt(0).toUpperCase() + me.firstName.slice(1) : ""}`} subtitle={format(new Date(), "EEEE d MMMM", { locale: fr })} />
 
       {/* 01 — Chiffres du jour, bandeau sobre avec filets */}
       <section aria-label="Chiffres du jour">
@@ -107,7 +107,7 @@ export function Dashboard() {
       <div className="grid min-w-0 gap-8 lg:grid-cols-2 [&>*]:min-w-0">
         {showSuggestions && (
           <section aria-label="Suggestions" className="lg:col-span-2">
-            <p className="kicker">Suggestion</p>
+            <p className="kicker">02 — Suggestion</p>
             <h2 className="mt-1 text-lg font-bold tracking-tight">Par où commencer</h2>
             <div className="mt-2.5 flex flex-wrap gap-2">
               {SUGGESTIONS[me?.profileType ?? "student"].map((s) => (
@@ -124,7 +124,7 @@ export function Dashboard() {
           </section>
         )}
         <section aria-label="Tâches du jour">
-          <p className="kicker">02 — Jour</p>
+          <p className="kicker">03 — Jour</p>
           <div className="mt-1 flex items-baseline justify-between gap-2">
             <h2 className="text-lg font-bold tracking-tight">Aujourd'hui</h2>
             <Link to="/today" className="text-sm font-medium text-stone-500 hover:text-stone-900">Tout voir →</Link>
@@ -135,7 +135,7 @@ export function Dashboard() {
         </section>
         <div className="space-y-8">
           <section aria-label="Projets récents">
-            <p className="kicker">03 — Projets</p>
+            <p className="kicker">04 — Projets</p>
             <div className="mt-1 flex items-baseline justify-between gap-2">
               <h2 className="text-lg font-bold tracking-tight">Projets récents</h2>
               <Link to="/projects" className="text-sm font-medium text-stone-500 hover:text-stone-900">Tout voir →</Link>
@@ -146,13 +146,13 @@ export function Dashboard() {
             ))}{projects.length === 0 && <EmptyState title="Aucun projet" hint="Organisez vos tâches par projet." action={<Link to="/projects"><Button>Créer un projet</Button></Link>} />}</div>
           </section>
           <section aria-label="Priorités">
-            <p className="kicker">04 — Signal faible</p>
-            <h2 className="mt-1 text-lg font-bold tracking-tight">Priorités</h2>
+            <p className="kicker">05 — Priorités</p>
+            <h2 className="mt-1 text-lg font-bold tracking-tight">À traiter en premier</h2>
             <div className="mt-2.5 space-y-2">{urgent.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}{urgent.length === 0 && <p className="text-sm text-stone-500">Aucune tâche urgente. Belle avance.</p>}</div>
           </section>
           {recentFiles.length > 0 && (
             <section aria-label="Fichiers récents">
-              <p className="kicker">05 — Documents</p>
+              <p className="kicker">06 — Documents</p>
               <div className="mt-1 flex items-baseline justify-between gap-2">
                 <h2 className="text-lg font-bold tracking-tight">Fichiers récents</h2>
                 <Link to="/files" className="text-sm font-medium text-stone-500 hover:text-stone-900">Voir tout →</Link>

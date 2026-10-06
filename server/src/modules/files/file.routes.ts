@@ -8,6 +8,7 @@ import { requireVerified } from "../../middleware/requireVerified.js";
 import { ok, paginated, notFound, forbidden, AppError } from "../../shared/errors.js";
 import { Response, NextFunction } from "express";
 import { requireWorkspaceAccess } from "../workspaces/workspace.access.js";
+import { WorkspaceModel, WorkspaceMemberModel } from "../workspaces/workspace.model.js";
 import { storage } from "./storage/index.js";
 import { upload, verifyFile, sanitizeName, storageKey, extensionOf, cleanupTemp } from "./upload.js";
 import { env } from "../../config/env.js";
@@ -102,25 +103,39 @@ fileRouter.get("/by-entity", async (req: AuthRequest, res: Response, next: NextF
   } catch (e) { next(e); }
 });
 
-/** GET /files/quota — utilisation du stockage */
+/** GET /files/quota — utilisation du stockage DU COMPTE (tous espaces, hors corbeille) */
 fileRouter.get("/quota", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const q = req.query as Record<string, string>;
     if (!q["workspaceId"]) throw forbidden("workspaceId required");
     await requireWorkspaceAccess(req.userId as string, q["workspaceId"]);
     const agg = await FileAssetModel.aggregate([
-      { $match: { workspaceId: (await import("mongoose")).default.Types.ObjectId.createFromHexString(q["workspaceId"]), status: { $ne: "trashed" } } },
+      { $match: { workspaceId: { $in: await accountWorkspaceObjectIds(req.userId as string) }, status: { $ne: "trashed" } } },
       { $group: { _id: null, used: { $sum: "$size" }, count: { $sum: 1 } } },
     ]);
     const used = agg[0]?.used ?? 0;
-    const limit = env.MAX_WORKSPACE_STORAGE_MB * 1024 * 1024;
+    const limit = env.MAX_ACCOUNT_STORAGE_MB * 1024 * 1024;
     res.json(ok({ quota: { used, limit, count: agg[0]?.count ?? 0 } }));
   } catch (e) { next(e); }
 });
 
-async function workspaceUsedBytes(workspaceId: string): Promise<number> {
+/** Espaces du compte (propriétaire + membre). */
+async function accountWorkspaceObjectIds(userId: string) {
+  const [owned, memberships] = await Promise.all([
+    WorkspaceModel.find({ ownerId: userId }).select("_id").lean(),
+    WorkspaceMemberModel.find({ userId }).select("workspaceId").lean(),
+  ]);
+  const ids = new Map<string, mongoose.Types.ObjectId>();
+  for (const w of [...owned, ...memberships]) {
+    const wid = (w as { _id?: unknown; workspaceId?: unknown }).workspaceId ?? (w as { _id: unknown })._id;
+    ids.set(String(wid), wid as mongoose.Types.ObjectId);
+  }
+  return [...ids.values()];
+}
+
+async function accountUsedBytes(userId: string): Promise<number> {
   const agg = await FileAssetModel.aggregate([
-    { $match: { workspaceId: new mongoose.Types.ObjectId(workspaceId), status: { $ne: "trashed" } } },
+    { $match: { workspaceId: { $in: await accountWorkspaceObjectIds(userId) }, status: { $ne: "trashed" } } },
     { $group: { _id: null, used: { $sum: "$size" } } },
   ]);
   return agg[0]?.used ?? 0;
@@ -136,9 +151,9 @@ export async function copyFileAsset(userId: string, srcFileId: string, destFolde
     const folder = await FolderModel.findById(dest);
     if (!folder || String(folder.workspaceId) !== String(src.workspaceId) || folder.trashedAt) throw notFound("Folder not found");
   }
-  const used = await workspaceUsedBytes(String(src.workspaceId));
-  if (used + (src.size as number) > env.MAX_WORKSPACE_STORAGE_MB * 1024 * 1024) {
-    throw new AppError(400, "VALIDATION_ERROR", "Quota de stockage de l'espace dépassé");
+  const used = await accountUsedBytes(userId);
+  if (used + (src.size as number) > env.MAX_ACCOUNT_STORAGE_MB * 1024 * 1024) {
+    throw new AppError(400, "VALIDATION_ERROR", "Quota de stockage du compte dépassé (5 Go)");
   }
   const finalKey =
     storage().name === "gridfs" ? new mongoose.Types.ObjectId().toHexString() : storageKey(String(src.workspaceId), String(src.extension ?? ""));
@@ -210,13 +225,13 @@ fileRouter.post("/", upload.array("files", 10), async (req: AuthRequest, res: Re
     }
 
     const quota = await FileAssetModel.aggregate([
-      { $match: { workspaceId: (await import("mongoose")).default.Types.ObjectId.createFromHexString(body.workspaceId), status: { $ne: "trashed" } } },
+      { $match: { workspaceId: { $in: await accountWorkspaceObjectIds(req.userId as string) }, status: { $ne: "trashed" } } },
       { $group: { _id: null, used: { $sum: "$size" } } },
     ]);
     const used = quota[0]?.used ?? 0;
     const incoming = files.reduce((s, f) => s + f.size, 0);
-    if (used + incoming > env.MAX_WORKSPACE_STORAGE_MB * 1024 * 1024) {
-      throw new AppError(400, "VALIDATION_ERROR", "Quota de stockage de l'espace dépassé");
+    if (used + incoming > env.MAX_ACCOUNT_STORAGE_MB * 1024 * 1024) {
+      throw new AppError(400, "VALIDATION_ERROR", "Quota de stockage du compte dépassé (5 Go)");
     }
 
     const created = [];

@@ -205,9 +205,9 @@ export function Files() {
           </nav>
           {quota && (
             <div className="mt-4 rounded-xl border border-stone-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-              <p className="flex items-center gap-1.5 text-xs font-bold"><HardDrive size={13} /> Stockage</p>
+              <p className="flex items-center gap-1.5 text-xs font-bold"><HardDrive size={13} /> Stockage du compte</p>
               <div className="mt-2 h-1 overflow-hidden rounded-full bg-stone-200"><div className="progress-fill h-1 rounded-full" style={{ ["--w" as string]: `${pct}%`, width: `${pct}%` }} /></div>
-              <p className="mt-1 text-xs text-stone-500">{formatSize(quota.used)} / {formatSize(quota.limit)}</p>
+              <p className="mt-1 text-xs text-stone-500">{formatSize(quota.used)} utilisés sur {formatSize(quota.limit)}</p>
             </div>
           )}
         </aside>
