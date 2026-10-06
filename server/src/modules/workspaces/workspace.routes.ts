@@ -6,6 +6,7 @@ import { requireAuth, AuthRequest } from "../../middleware/auth.js";
 import { requireVerified } from "../../middleware/requireVerified.js";
 import { validate } from "../../middleware/validate.js";
 import { ok, paginated, notFound, forbidden, conflict } from "../../shared/errors.js";
+import { inviteLimiter } from "../../middleware/rateLimit.js";
 import { Response, NextFunction } from "express";
 import { requireWorkspaceAccess } from "./workspace.access.js";
 
@@ -90,7 +91,7 @@ workspaceRouter.get("/:id/members", async (req: AuthRequest, res: Response, next
 // paginated helper export reused
 export { paginated };
 
-workspaceRouter.post("/:id/invite", async (req: AuthRequest, res: Response, next: NextFunction) => {
+workspaceRouter.post("/:id/invite", inviteLimiter, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const ws = await requireWorkspaceAccess(req.userId as string, req.params.id);
     const me = await WorkspaceMemberModel.findOne({ workspaceId: req.params.id, userId: req.userId }).lean();

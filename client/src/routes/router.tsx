@@ -7,6 +7,7 @@ import { Sidebar, MobileNav } from "../components/layout/Shell";
 import { QuickAdd } from "../features/tasks/QuickAdd";
 import { CommandPalette } from "../components/layout/CommandPalette";
 import { UpdatePrompt } from "../components/layout/UpdatePrompt";
+import { ChatWatcher } from "../components/layout/ChatWatcher";
 import { InstallPrompt } from "../components/layout/InstallPrompt";
 import { UploadManager } from "../components/layout/UploadManager";
 import { Toasts } from "../components/layout/Toasts";
@@ -115,6 +116,7 @@ function AppShell() {
       <QuickAdd />
       <CommandPalette />
       <UpdatePrompt />
+      <ChatWatcher />
       <InstallPrompt />
       <UploadManager />
       <Toasts />

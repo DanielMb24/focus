@@ -29,6 +29,19 @@ export const env = {
 };
 
 /**
+ * Garde-fou production : jamais de secrets de développement en prod.
+ * Échoue vite et fort au démarrage plutôt qu'en silence.
+ */
+if (
+  (process.env.NODE_ENV ?? "development") === "production" &&
+  (/please-change|change-me/.test(`${process.env.JWT_ACCESS_SECRET ?? ""}${process.env.JWT_REFRESH_SECRET ?? ""}`) ||
+    (process.env.JWT_ACCESS_SECRET ?? "").length < 32 ||
+    (process.env.JWT_REFRESH_SECRET ?? "").length < 32)
+) {
+  throw new Error("JWT_ACCESS_SECRET et JWT_REFRESH_SECRET doivent être définis (≥ 32 caractères) en production");
+}
+
+/**
  * Vérification d'email à l'inscription (code + garde-fou).
  * Lue à chaque appel (pas figée à l'import) : coupée par défaut pour
  * l'instant, activable sans redéploiement de code via la variable d'env.

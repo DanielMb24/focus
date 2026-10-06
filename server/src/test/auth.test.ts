@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { createApp } from "../app.js";
+import { env } from "../config/env.js";
+import { RefreshTokenModel } from "../modules/users/extra.models.js";
 import { connectTestDb, clearTestDb, closeTestDb, uniqueEmail } from "./helpers.js";
 import { mailOutbox } from "../modules/mail/mailer.js";
 
@@ -198,5 +202,55 @@ describe("sécurité du compte : vérification email + mots de passe", () => {
     expect(reuse.status).toBe(403);
     const login = await request(app).post("/api/v1/auth/login").send({ email, password: "Reset12345!" });
     expect(login.status).toBe(200);
+  });
+
+  it("verrouille le compte après 5 échecs (message générique, sans oracle)", async () => {
+    const email = uniqueEmail("lock");
+    await request(app).post("/api/v1/auth/register").send({
+      firstName: "Lock", email, password: "Password123!", profileType: "student",
+    });
+    for (let i = 0; i < 5; i++) {
+      const bad = await request(app).post("/api/v1/auth/login").send({ email, password: "wrong" });
+      expect(bad.status).toBe(401);
+      expect(bad.body.error.message).toBe("Invalid credentials");
+    }
+    // Même le bon mot de passe est refusé pendant le verrouillage, sans le révéler.
+    const locked = await request(app).post("/api/v1/auth/login").send({ email, password: "Password123!" });
+    expect(locked.status).toBe(401);
+    expect(locked.body.error.message).toBe("Invalid credentials");
+  });
+
+  it("anti-rejeu : grâce immédiate puis révocation de la famille", async () => {
+    const email = uniqueEmail("replay");
+    const cookieOf = (res: request.Response): string => {
+      const raw = (res.headers["set-cookie"] as unknown as string[] | undefined) ?? [];
+      return (/refreshToken=([^;]+)/.exec(raw.join(";"))?.[1] ?? "");
+    };
+    const reg = await request(app).post("/api/v1/auth/register").send({
+      firstName: "Replay", email, password: "Password123!", profileType: "student",
+    });
+    const userId = reg.body.data.user._id as string;
+    const r0 = cookieOf(reg);
+    expect(r0).not.toBe("");
+    // Rotation normale.
+    const r1res = await request(app).post("/api/v1/auth/refresh").set("Cookie", `refreshToken=${r0}`);
+    expect(r1res.status).toBe(200);
+    const r1 = cookieOf(r1res);
+    expect(r1).not.toBe("");
+    // Re-présentation immédiate de l'ancien (double submit) : grâce, pas de nuke.
+    const grace = await request(app).post("/api/v1/auth/refresh").send({ refreshToken: r0 });
+    expect(grace.status).toBe(200);
+    // Vieux token révoqué sans chaîne (vol hors délai) : 401 + famille révoquée.
+    const evilJwt = jwt.sign({ sub: userId }, env.JWT_REFRESH_SECRET, { expiresIn: "30d" });
+    const evilHash = crypto.createHash("sha256").update(evilJwt).digest("hex");
+    await RefreshTokenModel.create({
+      userId, tokenHash: evilHash, expiresAt: new Date(Date.now() + 30 * 86400 * 1000),
+      revokedAt: new Date(Date.now() - 61_000),
+    });
+    const replay = await request(app).post("/api/v1/auth/refresh").send({ refreshToken: evilJwt });
+    expect(replay.status).toBe(401);
+    // La famille est morte : même le refresh courant est rejeté.
+    const after = await request(app).post("/api/v1/auth/refresh").set("Cookie", `refreshToken=${r1}`);
+    expect(after.status).toBe(401);
   });
 });

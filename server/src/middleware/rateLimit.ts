@@ -43,3 +43,12 @@ export const verifyLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === "test" ? 1000 : 15,
 });
+
+/** 120 refresh / 15 min / IP : le renouvellement silencieux ne doit jamais marteler. */
+export const refreshLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 120 });
+
+/** 60 messages / min / IP sur la messagerie (anti-spam). */
+export const chatLimiter = rateLimit({ windowMs: 60 * 1000, max: 60 });
+
+/** 20 invitations / 15 min / IP (anti-spam). */
+export const inviteLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });

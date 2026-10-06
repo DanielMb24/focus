@@ -19,6 +19,9 @@ const userSchema = new Schema(
     verificationSentAt: { type: Date },
     passwordResetTokenHash: { type: String, select: false },
     passwordResetExpiresAt: { type: Date },
+    // Anti brute-force par compte : 5 échecs → verrouillage 15 min (message générique, pas d'oracle).
+    loginAttempts: { type: Number, default: 0 },
+    lockedUntil: { type: Date },
     avatar: { type: String },
     preferences: {
       language: { type: String, default: "fr" },
@@ -26,7 +29,7 @@ const userSchema = new Schema(
       theme: { type: String, enum: ["light", "dark", "system"], default: "light" },
     },
   },
-  { timestamps: true, toJSON: { transform(_doc, ret) { const r = ret as Record<string, unknown>; delete r["passwordHash"]; delete r["__v"]; return r; } } }
+  { timestamps: true, toJSON: { transform(_doc, ret) { const r = ret as Record<string, unknown>; delete r["passwordHash"]; delete r["loginAttempts"]; delete r["lockedUntil"]; delete r["__v"]; return r; } } }
 );
 
 export type UserDoc = InferSchemaType<typeof userSchema> & { _id: mongoose.Types.ObjectId };

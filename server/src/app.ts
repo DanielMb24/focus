@@ -17,6 +17,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
   const app = express();
+  app.disable("x-powered-by");
   app.use(securityHeaders);
   // Origines normalisées : espaces, slash final et caractères invisibles
   // issus d'un copier-coller dashboard neutralisés.

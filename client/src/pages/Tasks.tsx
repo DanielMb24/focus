@@ -3,7 +3,8 @@ import { useTasks, useProjects } from "../lib/hooks";
 import { useDebouncedValue } from "../lib/debounce";
 import { Topbar } from "../components/layout/Shell";
 import { TaskRow } from "../features/tasks/TaskRow";
-import { EmptyState, Skeleton, Button } from "../components/ui/primitives";
+import { EmptyState, Skeleton, Button, ViewToggle } from "../components/ui/primitives";
+import { useViewMode } from "../lib/viewMode";
 import { useUI } from "../store/ui";
 import { cn } from "../lib/cn";
 
@@ -24,6 +25,7 @@ export function Tasks() {
   const { data: tasks = [], isLoading } = useTasks({ search: dq || undefined, priority: priority || undefined, projectId: projectId || undefined, tags: dtag.trim() || undefined });
   const { data: projects = [] } = useProjects();
   const { setQuickAdd } = useUI();
+  const [view, setView] = useViewMode("tasks", "list");
   const pname = (id?: string) => projects.find((p) => p._id === id)?.name;
 
   const filtered = useMemo(() => {
@@ -58,11 +60,18 @@ export function Tasks() {
         <input aria-label="Filtrer par tag" value={tag} onChange={(e) => setTag(e.target.value)} placeholder="Tag…" className={cn(inputCls, "w-full")} />
       </div>
       <section aria-label="Liste des tâches">
-        <p className="kicker">02 — Liste</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="kicker">02 — Liste</p>
+          {filtered.length > 0 && <ViewToggle mode={view} onChange={setView} />}
+        </div>
         <h2 className="mt-1 text-lg font-bold tracking-tight">{tab} · {filtered.length}</h2>
         {isLoading ? <Skeleton className="mt-2.5 h-32" /> : filtered.length === 0 ? (
           <div className="mt-2.5"><EmptyState title="Vous n'avez encore aucune tâche." hint="Commencez par ajouter ce que vous souhaitez accomplir aujourd'hui." action={<Button onClick={() => setQuickAdd(true)}>Créer une tâche</Button>} /></div>
-        ) : <div className="mt-2.5 space-y-2">{filtered.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>}
+        ) : view === "list" ? (
+          <div className="mt-2.5 space-y-2">{filtered.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>
+        ) : (
+          <div className="mt-2.5 grid gap-2.5 md:grid-cols-2">{filtered.map((t) => <TaskRow key={t._id} task={t} projectName={pname(t.projectId)} />)}</div>
+        )}
       </section>
     </div>
   );

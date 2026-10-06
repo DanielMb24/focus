@@ -12,6 +12,12 @@ import { sendMail, verificationEmail, resetEmail } from "../mail/mailer.js";
 const VERIFY_TTL_MS = 10 * 60 * 1000;
 const RESET_TTL_MS = 60 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
+// Anti brute-force par compte (en plus du limiteur par IP).
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_MS = 15 * 60 * 1000;
+// Fenêtre de grâce anti-rejeu : un token tout juste tourné peut être
+// re-présenté (double submit, 2 onglets) sans révoquer la famille.
+const REUSE_GRACE_MS = 60 * 1000;
 
 function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
@@ -44,13 +50,26 @@ export async function register(input: { firstName: string; lastName?: string; em
 export async function login(email: string, password: string) {
   const user = await UserModel.findOne({ email: email.toLowerCase() }).select("+passwordHash");
   if (!user?.passwordHash) throw unauthorized("Invalid credentials");
+  const u = user as unknown as { lockedUntil?: Date; loginAttempts?: number; emailVerified?: boolean; save: () => Promise<unknown> };
+  if (u.lockedUntil && u.lockedUntil.getTime() > Date.now()) throw unauthorized("Invalid credentials");
   const ok = await bcrypt.compare(password, user.passwordHash as string);
-  if (!ok) throw unauthorized("Invalid credentials");
+  if (!ok) {
+    const attempts = (u.loginAttempts ?? 0) + 1;
+    u.loginAttempts = attempts;
+    if (attempts >= MAX_LOGIN_ATTEMPTS) {
+      u.lockedUntil = new Date(Date.now() + LOCK_MS);
+      u.loginAttempts = 0;
+    }
+    await u.save();
+    throw unauthorized("Invalid credentials");
+  }
+  u.loginAttempts = 0;
+  u.lockedUntil = undefined;
   // Auto-réparation : vérification coupée + compte marqué non-vérifié → on le valide.
   if (!requireEmailVerification() && (user as { emailVerified?: boolean }).emailVerified === false) {
     (user as { emailVerified?: boolean }).emailVerified = true;
-    await user.save();
   }
+  await u.save();
   const session = await issueSession(user.id as string);
   const verified = (session.user as { emailVerified?: boolean })?.emailVerified;
   return { ...session, requiresVerification: requireEmailVerification() && verified === false };
@@ -160,11 +179,26 @@ export async function refresh(oldToken: string) {
     throw unauthorized("Invalid refresh token");
   }
   const stored = await RefreshTokenModel.findOne({ tokenHash: hashToken(oldToken) });
-  if (!stored || stored.revokedAt || stored.expiresAt < new Date()) throw unauthorized("Invalid refresh token");
-  // rotation
+  if (!stored) throw unauthorized("Invalid refresh token");
+  if (stored.expiresAt < new Date()) throw unauthorized("Invalid refresh token");
+  if (stored.revokedAt) {
+    const ageMs = Date.now() - stored.revokedAt.getTime();
+    if (stored.replacedBy && ageMs < REUSE_GRACE_MS) {
+      // Re-présentation légitime (double submit, second onglet) : on ré-émet
+      // sans toucher à la famille de tokens.
+      return issueSession(payload.sub);
+    }
+    // Réutilisation suspecte (vol potentiel) : on révoque toute la famille.
+    await RefreshTokenModel.updateMany({ userId: stored.userId, revokedAt: null }, { $set: { revokedAt: new Date() } });
+    console.warn(`[security] refresh token reuse for user ${stored.userId} — sessions revoked`);
+    throw unauthorized("Invalid refresh token");
+  }
+  // rotation : on chaîne l'ancien vers le nouveau (fenêtre de grâce).
+  const session = await issueSession(payload.sub);
   stored.revokedAt = new Date();
+  stored.replacedBy = hashToken(session.refreshToken);
   await stored.save();
-  return issueSession(payload.sub);
+  return session;
 }
 
 export async function logout(refreshToken: string | undefined) {

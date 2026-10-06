@@ -5,6 +5,7 @@ import { WorkspaceMemberModel } from "../workspaces/workspace.model.js";
 import { requireAuth, AuthRequest } from "../../middleware/auth.js";
 import { requireVerified } from "../../middleware/requireVerified.js";
 import { ok, paginated, notFound, forbidden } from "../../shared/errors.js";
+import { chatLimiter } from "../../middleware/rateLimit.js";
 import { Response, NextFunction } from "express";
 import { requireWorkspaceAccess } from "../workspaces/workspace.access.js";
 
@@ -124,7 +125,7 @@ chatRouter.get("/conversations/:id/messages", async (req: AuthRequest, res: Resp
 });
 
 // Envoyer un message.
-chatRouter.post("/conversations/:id/messages", async (req: AuthRequest, res: Response, next: NextFunction) => {
+chatRouter.post("/conversations/:id/messages", chatLimiter, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const c = await convoForUser(req.params.id, req.userId as string);
     const input = z.object({ text: z.string().trim().min(1).max(2000) }).parse(req.body);

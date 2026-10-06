@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useProjects, useCreateProject, useTasks } from "../lib/hooks";
 import { useWorkspace } from "../store/ui";
 import { Topbar } from "../components/layout/Shell";
-import { Card, EmptyState, Skeleton, Button } from "../components/ui/primitives";
+import { Card, EmptyState, Skeleton, Button, ViewToggle } from "../components/ui/primitives";
+import { useViewMode } from "../lib/viewMode";
 
 const inputCls = "field-control field-sm";
 
@@ -14,6 +15,7 @@ export function Projects() {
   const [name, setName] = useState("");
   const [withFolder, setWithFolder] = useState(true);
   const [open, setOpen] = useState(false);
+  const [view, setView] = useViewMode("projects", "grid");
 
   async function submit() {
     if (!name.trim() || !activeWorkspaceId) return;
@@ -39,7 +41,11 @@ export function Projects() {
       )}
       {!activeWorkspaceId && <p className="mt-3 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">Sélectionnez un espace pour créer un projet.</p>}
       <section aria-label="Liste des projets">
-        <p className="kicker mt-4">01 — Liste</p>
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <p className="kicker">01 — Liste</p>
+          {projects.length > 0 && <ViewToggle mode={view} onChange={setView} />}
+        </div>
+        {view === "grid" ? (
         <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {isLoading ? <Skeleton className="h-28" /> : projects.map((p) => (
             <Link key={p._id} to={`/projects/${p._id}`}>
@@ -59,6 +65,21 @@ export function Projects() {
             </Link>
           ))}
         </div>
+        ) : (
+        <ul className="mt-2 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+          {isLoading ? <li className="p-4"><Skeleton className="h-10" /></li> : projects.map((p) => (
+            <li key={p._id}>
+              <Link to={`/projects/${p._id}`} className="flex items-center gap-3 px-4 py-3 transition hover:bg-stone-50 dark:hover:bg-zinc-800/60">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: (p.color as string) ?? "#1d4ed8" }} aria-hidden />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+                <span className="hidden font-mono text-[11px] uppercase tracking-wide text-stone-400 sm:block">{p.completedTasks ?? 0}/{p.totalTasks ?? 0} tâches</span>
+                <span className="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-stone-200 dark:bg-zinc-800"><span className="block h-1 rounded-full bg-[#1d4ed8]" style={{ width: `${p.progress ?? 0}%` }} /></span>
+                <span className="w-10 shrink-0 text-right text-sm font-bold tabular-nums">{p.progress ?? 0}%</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        )}
       </section>
       {!isLoading && projects.length === 0 && <div className="mt-4"><EmptyState title="Aucun projet" hint="Créez votre premier projet pour organiser vos tâches." /></div>}
     </div>

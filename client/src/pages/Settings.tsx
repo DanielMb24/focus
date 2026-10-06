@@ -8,6 +8,9 @@ import { Topbar } from "../components/layout/Shell";
 import { NativeDownloads } from "../components/layout/NativeDownloads";
 import { applyTheme, currentThemeChoice, type ThemeChoice } from "../lib/theme";
 import { Card, Button } from "../components/ui/primitives";
+import { useNotifPrefs, NOTIF_CATEGORIES } from "../store/notificationPrefs";
+import { notify, requestSystemNotifications } from "../lib/notify";
+import { maybeSendDailyDigest } from "../lib/digest";
 import { cn } from "../lib/cn";
 
 const inputCls = "field-control mt-1 w-full";
@@ -107,13 +110,13 @@ export function Settings() {
         <Card><SectionTitle kicker="04 — Sécurité" title="Mot de passe" /><PasswordForm /></Card>
         <Card><SectionTitle kicker="05 — Session" title="Session" /><Button variant="danger" className="mt-2" onClick={logout}>Se déconnecter</Button></Card>
         <Card><SectionTitle kicker="06 — Applications" title="Application mobile & bureau" /><NativeDownloads /></Card>
+        <Card><SectionTitle kicker="07 — Notifications" title="Notifications" /><NotificationSettings /></Card>
       </div>
     </div>
   );
 }
 
-function PasswordForm() {
-  const [current, setCurrent] = useState("");
+function PasswordForm() {  const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [msg, setMsg] = useState("");
@@ -141,6 +144,99 @@ function PasswordForm() {
       {err && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{err}</p>}
       {msg && <p role="status" className="rounded-lg bg-stone-100 px-3 py-2 text-sm font-medium text-stone-700 dark:bg-zinc-800 dark:text-zinc-100">{msg}</p>}
       <Button disabled={busy} onClick={() => void submit()}>{busy ? "…" : "Modifier"}</Button>
+    </div>
+  );
+}
+
+function Switch({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button" role="switch" aria-checked={on} aria-label={label} onClick={onClick}
+      className={cn(
+        "relative h-6 w-11 shrink-0 rounded-full transition",
+        on ? "bg-[#1d4ed8]" : "bg-stone-300 dark:bg-zinc-700"
+      )}
+    >
+      <span className={cn(
+        "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all",
+        on ? "left-[22px]" : "left-0.5"
+      )} />
+    </button>
+  );
+}
+
+function NotificationSettings() {
+  const { enabled, categories, quietStart, quietEnd, setEnabled, toggleCategory, setQuiet } = useNotifPrefs();
+  const [sys, setSys] = useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
+  const [msg, setMsg] = useState("");
+
+  async function enableSystem() {
+    const ok = await requestSystemNotifications();
+    setSys(Notification.permission);
+    if (!ok) setMsg("Autorisation refusée par le navigateur.");
+  }
+
+  return (
+    <div className="mt-3 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold">Notifications</p>
+          <p className="text-xs text-stone-500">Centre interne + toast, et système si autorisé.</p>
+        </div>
+        <Switch on={enabled} onClick={() => setEnabled(!enabled)} label="Activer les notifications" />
+      </div>
+      {enabled && (
+        <>
+          <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-zinc-700">
+            {NOTIF_CATEGORIES.map((c) => (
+              <div key={c.id} className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{c.label}</p>
+                  <p className="text-xs text-stone-500">{c.hint}</p>
+                </div>
+                <Switch on={categories[c.id]} onClick={() => toggleCategory(c.id)} label={`Notifications ${c.label}`} />
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-stone-200 pt-3 dark:border-zinc-700">
+            <p className="text-sm font-medium">Heures calmes <span className="font-normal text-stone-400">(système coupé, centre conservé)</span></p>
+            <div className="mt-1.5 flex items-center gap-2">
+              <input type="time" aria-label="Début des heures calmes" value={quietStart} onChange={(e) => setQuiet("quietStart", e.target.value)} className="field-control field-sm !w-auto" />
+              <span className="text-sm text-stone-400">→</span>
+              <input type="time" aria-label="Fin des heures calmes" value={quietEnd} onChange={(e) => setQuiet("quietEnd", e.target.value)} className="field-control field-sm !w-auto" />
+              {(quietStart || quietEnd) && (
+                <button onClick={() => { setQuiet("quietStart", ""); setQuiet("quietEnd", ""); }} className="text-xs font-medium text-stone-400 hover:text-stone-700">Effacer</button>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 border-t border-stone-200 pt-3 dark:border-zinc-700">
+            {sys === "granted" ? (
+              <p className="text-xs text-stone-500">Notifications système activées sur cet appareil.</p>
+            ) : sys === "unsupported" ? (
+              <p className="text-xs text-stone-500">Notifications système non supportées par ce navigateur.</p>
+            ) : (
+              <Button variant="outline" onClick={() => void enableSystem()} className="!py-2 text-sm">Activer les notifications système</Button>
+            )}
+            <Button
+              variant="ghost"
+              className="!py-2 text-sm"
+              onClick={() => {
+                setMsg("");
+                void notify("Notification de test", "Si vous lisez ceci, tout fonctionne.", "system", `test-${Date.now()}`).then(() => setMsg("Test envoyé — vérifiez le centre et le toast."));
+              }}
+            >
+              Envoyer un test
+            </Button>
+          </div>
+          {msg && <p role="status" className="text-xs text-stone-500">{msg}</p>}
+          <button
+            onClick={() => { localStorage.removeItem(`digest-${new Date().toISOString().slice(0, 10)}`); void maybeSendDailyDigest(true).then(() => setMsg("Bilan du jour envoyé (si échéances).")); }}
+            className="text-xs font-medium text-stone-400 hover:text-stone-700"
+          >
+            Recevoir le bilan du jour maintenant
+          </button>
+        </>
+      )}
     </div>
   );
 }

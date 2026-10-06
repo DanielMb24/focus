@@ -6,10 +6,11 @@ import { api } from "../lib/api";
 import { useGoals, useNotes, useFocusSessions, useTasks } from "../lib/hooks";
 import { useWorkspace } from "../store/ui";
 import { Topbar } from "../components/layout/Shell";
-import { Card, EmptyState, Button, Skeleton } from "../components/ui/primitives";
+import { Card, EmptyState, Button, Skeleton, ViewToggle } from "../components/ui/primitives";
 import { offlineFirst, prependNoteToCache } from "../lib/offline";
 import { GoalEdit } from "../features/goals/GoalEdit";
 import { notify } from "../lib/notify";
+import { useViewMode } from "../lib/viewMode";
 import { cn } from "../lib/cn";
 import { docToHtml, docToMarkdown, docToText, downloadBlob, parseNoteContent, slugFilename } from "../lib/noteDoc";
 import { exportNoteDocx, printNote } from "../lib/noteExport";
@@ -60,9 +61,59 @@ export function Goals() {
   );
 }
 
+function NoteCard({ n, layout, menuOpen, onMenu, onOpen, onDuplicate, onExport, onDelete }: {
+  n: Note; layout: "grid" | "list"; menuOpen: boolean;
+  onMenu: () => void; onOpen: () => void;
+  onDuplicate: (n: Note) => void; onExport: (n: Note, kind: "docx" | "pdf" | "md") => void; onDelete: (n: Note) => void;
+}) {
+  const preview = docToText(parseNoteContent(n.content)).slice(0, 160);
+  const words = noteStats(docToText(parseNoteContent(n.content))).words;
+  const meta = `${new Date(n.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · ${words} mots`;
+  const menu = (
+    <div className="relative ml-auto shrink-0">
+      <button aria-label={`Actions pour ${n.title}`} aria-expanded={menuOpen} onClick={onMenu}
+        className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-stone-400 transition hover:bg-stone-100 hover:text-stone-900">⋯</button>
+      {menuOpen && (
+        <div role="menu" className="animate-pop absolute bottom-full right-0 z-30 mb-1.5 w-52 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
+          <button role="menuitem" onClick={() => onDuplicate(n)} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><Copy size={14} className="text-stone-400" /> Dupliquer</button>
+          <button role="menuitem" onClick={() => onExport(n, "docx")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><FileDown size={14} className="text-stone-400" /> Exporter Word</button>
+          <button role="menuitem" onClick={() => onExport(n, "pdf")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><Printer size={14} className="text-stone-400" /> Exporter PDF</button>
+          <button role="menuitem" onClick={() => onExport(n, "md")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><FileText size={14} className="text-stone-400" /> Exporter Markdown</button>
+          <button role="menuitem" onClick={() => onDelete(n)} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm text-red-700 transition hover:bg-red-50"><Trash2 size={14} /> Supprimer</button>
+        </div>
+      )}
+    </div>
+  );
+  if (layout === "list") {
+    return (
+      <div className="group flex items-center gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 transition hover:border-stone-300 dark:border-zinc-800 dark:bg-zinc-900">
+        <button onClick={onOpen} className="flex min-w-0 flex-1 items-baseline gap-3 text-left" title="Ouvrir dans l'éditeur">
+          <span className="truncate text-sm font-bold tracking-tight">{n.title}</span>
+          <span className="hidden min-w-0 flex-1 truncate text-sm text-stone-500 md:block">{preview || "Document vide."}</span>
+          <span className="shrink-0 font-mono text-[11px] uppercase tracking-wide text-stone-400">{meta}</span>
+        </button>
+        <button onClick={onOpen} className="shrink-0 rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-stone-700 dark:bg-white dark:text-zinc-900">Ouvrir</button>
+        {menu}
+      </div>
+    );
+  }
+  return (
+    <Card className="card-lift group">
+      <button onClick={onOpen} className="block w-full text-left" title="Ouvrir dans l'éditeur">
+        <p className="truncate text-[16px] font-bold tracking-tight">{n.title}</p>
+        <p className="mt-1 line-clamp-2 min-h-10 text-sm text-stone-500 dark:text-zinc-300">{preview || "Document vide — cliquez pour écrire."}</p>
+        <p className="mt-2 font-mono text-[11px] uppercase tracking-wide text-stone-400">{meta}</p>
+      </button>
+      <div className="mt-3 flex items-center gap-1.5 border-t border-stone-100 pt-2.5 dark:border-zinc-800">
+        <button onClick={onOpen} className="rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-stone-700 dark:bg-white dark:text-zinc-900">Ouvrir</button>
+        {menu}
+      </div>
+    </Card>
+  );
+}
+
 // Notes
-export function Notes() {
-  const [search, setSearch] = useState("");
+export function Notes() {  const [search, setSearch] = useState("");
   const { data: notes = [], isLoading } = useNotes(search || undefined);
   const { activeWorkspaceId } = useWorkspace();
   const qc = useQueryClient();
@@ -71,6 +122,7 @@ export function Notes() {
   const [menuId, setMenuId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [view, setView] = useViewMode("notes", "grid");
   const create = useMutation({
     mutationFn: async (t: string) => {
       const payload = { workspaceId: activeWorkspaceId, title: t, content: "" };
@@ -146,42 +198,34 @@ export function Notes() {
         {err && <p role="alert" className="mt-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700">{err}</p>}
       </Card>
       <section aria-label="Liste des notes">
-        <div className="mt-5 flex items-baseline justify-between">
+        <div className="mt-5 flex items-center justify-between gap-2">
           <p className="kicker">01 — Documents</p>
-          {notes.length > 0 && <p className="font-mono text-[11px] uppercase tracking-wide text-stone-400">{notes.length} note{notes.length > 1 ? "s" : ""}</p>}
+          <div className="flex items-center gap-2">
+            {notes.length > 0 && <p className="font-mono text-[11px] uppercase tracking-wide text-stone-400">{notes.length} note{notes.length > 1 ? "s" : ""}</p>}
+            {notes.length > 0 && <ViewToggle mode={view} onChange={setView} />}
+          </div>
         </div>
-        <div className="mt-2 grid gap-3 md:grid-cols-2">{isLoading ? <Skeleton className="h-28" /> : notes.map((n) => {
-          const preview = docToText(parseNoteContent(n.content)).slice(0, 160);
-          const words = noteStats(docToText(parseNoteContent(n.content))).words;
-          return (
-            <Card key={n._id} className="card-lift group">
-              <button onClick={() => nav(`/notes/${n._id}`)} className="block w-full text-left" title="Ouvrir dans l'éditeur">
-                <p className="truncate text-[16px] font-bold tracking-tight">{n.title}</p>
-                <p className="mt-1 line-clamp-2 min-h-10 text-sm text-stone-500 dark:text-zinc-300">{preview || "Document vide — cliquez pour écrire."}</p>
-                <p className="mt-2 font-mono text-[11px] uppercase tracking-wide text-stone-400">
-                  {new Date(n.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {words} mots
-                </p>
-              </button>
-              <div className="mt-3 flex items-center gap-1.5 border-t border-stone-100 pt-2.5 dark:border-zinc-800">
-                <button onClick={() => nav(`/notes/${n._id}`)} className="rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-stone-700 dark:bg-white dark:text-zinc-900">Ouvrir</button>
-                <div className="relative ml-auto">
-                  <button aria-label={`Actions pour ${n.title}`} aria-expanded={menuId === n._id} onClick={() => setMenuId(menuId === n._id ? null : n._id)}
-                    className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-stone-400 transition hover:bg-stone-100 hover:text-stone-900">⋯</button>
-                  {menuId === n._id && (
-                    <div role="menu" className="animate-pop absolute bottom-full right-0 z-30 mb-1.5 w-52 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lift dark:border-zinc-700 dark:bg-zinc-900">
-                      <button role="menuitem" onClick={() => void duplicate(n)} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><Copy size={14} className="text-stone-400" /> Dupliquer</button>
-                      <button role="menuitem" onClick={() => void exportCard(n, "docx")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><FileDown size={14} className="text-stone-400" /> Exporter Word</button>
-                      <button role="menuitem" onClick={() => void exportCard(n, "pdf")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><Printer size={14} className="text-stone-400" /> Exporter PDF</button>
-                      <button role="menuitem" onClick={() => void exportCard(n, "md")} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50 dark:hover:bg-zinc-800"><FileText size={14} className="text-stone-400" /> Exporter Markdown</button>
-                      <button role="menuitem" onClick={() => { setMenuId(null); if (window.confirm(`Supprimer « ${n.title} » ?`)) del.mutate(n._id); }} className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm text-red-700 transition hover:bg-red-50"><Trash2 size={14} /> Supprimer</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+        {view === "grid" ? (
+        <div className="mt-2 grid gap-3 md:grid-cols-2">{isLoading ? <Skeleton className="h-28" /> : notes.map((n) => (
+          <NoteCard
+            key={n._id} n={n} layout="grid"
+            menuOpen={menuId === n._id} onMenu={() => setMenuId(menuId === n._id ? null : n._id)}
+            onOpen={() => nav(`/notes/${n._id}`)} onDuplicate={(x) => void duplicate(x)} onExport={(x, k) => void exportCard(x, k)}
+            onDelete={(x) => { setMenuId(null); if (window.confirm(`Supprimer « ${x.title} » ?`)) del.mutate(x._id); }}
+          />
+        ))}
         </div>
+        ) : (
+        <div className="mt-2 space-y-2">{isLoading ? <Skeleton className="h-16" /> : notes.map((n) => (
+          <NoteCard
+            key={n._id} n={n} layout="list"
+            menuOpen={menuId === n._id} onMenu={() => setMenuId(menuId === n._id ? null : n._id)}
+            onOpen={() => nav(`/notes/${n._id}`)} onDuplicate={(x) => void duplicate(x)} onExport={(x, k) => void exportCard(x, k)}
+            onDelete={(x) => { setMenuId(null); if (window.confirm(`Supprimer « ${x.title} » ?`)) del.mutate(x._id); }}
+          />
+        ))}
+        </div>
+        )}
       </section>
       {!isLoading && notes.length === 0 && <div className="mt-4"><EmptyState title="Votre première note vous attend" hint="Capture rapide ci-dessus, ou document complet avec assistant et exports." action={<Button onClick={() => void newDocument()}>Créer un document</Button>} /></div>}
     </div>
@@ -206,7 +250,7 @@ export function Focus() {
     const iv = setInterval(() => {
       const el = Math.floor((Date.now() - t0) / 1000);
       const rem = planned - el;
-      if (rem <= 0) { clearInterval(iv); void notify("Session Focus terminée", `${Math.round(planned / 60)} min de concentration.`); void stop(d.session._id); return; }
+      if (rem <= 0) { clearInterval(iv); void notify("Session Focus terminée", `${Math.round(planned / 60)} min de concentration.`, "focus", `focus-done-${Date.now()}`); void stop(d.session._id); return; }
       setLeft(rem);
     }, 1000);
     (window as unknown as { __focusIv?: number }).__focusIv = iv as unknown as number;

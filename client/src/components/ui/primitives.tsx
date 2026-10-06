@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
-import { Inbox } from "lucide-react";
+import { Inbox, LayoutGrid, List } from "lucide-react";
 import { cn } from "../../lib/cn";
+import type { ViewMode } from "../../lib/viewMode";
 
 export function Button({ children, variant = "primary", className, ...p }: { children: ReactNode; variant?: "primary" | "ghost" | "outline" | "danger" | "soft" } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
@@ -44,6 +45,35 @@ export function EmptyState({ title, hint, action }: { title: string; hint: strin
 
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cn("shimmer rounded-xl", className)} />;
+}
+
+/** Bascule Cartes / Liste (préférence persistée via useViewMode). */
+export function ViewToggle({ mode, onChange, label = "Mode d'affichage" }: {
+  mode: ViewMode; onChange: (v: ViewMode) => void; label?: string;
+}) {
+  return (
+    <div role="group" aria-label={label} className="inline-flex rounded-lg border border-stone-200 bg-white p-0.5 dark:border-zinc-700 dark:bg-zinc-900">
+      {([
+        { v: "grid", icon: LayoutGrid, t: "Cartes" },
+        { v: "list", icon: List, t: "Liste" },
+      ] as const).map((o) => (
+        <button
+          key={o.v}
+          type="button"
+          title={o.t}
+          aria-label={o.t}
+          aria-pressed={mode === o.v}
+          onClick={() => onChange(o.v)}
+          className={cn(
+            "rounded-md p-1.5 transition",
+            mode === o.v ? "bg-stone-900 text-white dark:bg-white dark:text-zinc-900" : "text-stone-400 hover:text-stone-700 dark:hover:text-zinc-200"
+          )}
+        >
+          <o.icon size={16} />
+        </button>
+      ))}
+    </div>
+  );
 }
 
 const tones: Record<string, string> = {
